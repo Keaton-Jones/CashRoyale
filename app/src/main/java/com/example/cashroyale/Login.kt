@@ -1,5 +1,6 @@
 package com.example.cashroyale
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -7,19 +8,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.cashroyale.databinding.LoginBinding
+import com.example.cashroyale.databinding.ActivityLoginBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class Login : AppCompatActivity() {
 
-    private lateinit var binding: LoginBinding
+    private lateinit var binding: ActivityLoginBinding
     private lateinit var userDAO: UserDAO
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = LoginBinding.inflate(layoutInflater)
+        binding = ActivityLoginBinding.inflate(layoutInflater)
         enableEdgeToEdge()
         setContentView(binding.root)
 
@@ -73,6 +74,12 @@ class Login : AppCompatActivity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
+        }
+
+        binding.registerButton.setOnClickListener(){
+            intent = Intent(this, Register::class.java)
+            startActivity(intent)
+            finish()
         }
     }
 }
