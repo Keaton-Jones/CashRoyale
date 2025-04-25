@@ -15,15 +15,19 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
-        <fragment
-            android:name=".CalenderFragment"
-            android:exported="false" />
-        <fragment
-            android:name=".StatisticsFragment"
-            android:exported="false" />
-        <fragment
-            android:name=".GoalFragment"
-            android:exported="false" />
+
+<!--        <fragment-->
+<!--            android:name=".CalenderFragment"-->
+<!--            android:exported="false" />-->
+<!--        <fragment-->
+<!--            android:name=".StatisticsFragment"-->
+<!--            android:exported="false" />-->
+<!--        <fragment-->
+<!--            android:name=".GoalFragment"-->
+<!--            android:exported="false" />-->
+
+<!--        works with <activity></activity> or when commented out-->
+
         <activity
             android:name=".Register"
             android:exported="false" />
