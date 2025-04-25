@@ -50,6 +50,8 @@ class Login : AppCompatActivity() {
                                     Toast.LENGTH_SHORT
                                 )
                                     .show()
+                                 intent = Intent(this@Login, MainActivity::class.java)
+                                startActivity(intent)
                             } else {
                                 Toast.makeText(
                                     this@Login,
