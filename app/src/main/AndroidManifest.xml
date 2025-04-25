@@ -13,6 +13,18 @@
         android:theme="@style/Theme.CashRoyale"
         tools:targetApi="31">
         <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+        <fragment
+            android:name=".CalenderFragment"
+            android:exported="false" />
+        <fragment
+            android:name=".StatisticsFragment"
+            android:exported="false" />
+        <fragment
+            android:name=".GoalFragment"
+            android:exported="false" />
+        <activity
             android:name=".Register"
             android:exported="false" />
         <activity
