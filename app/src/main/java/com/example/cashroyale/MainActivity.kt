@@ -18,18 +18,12 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
         val bottomNavigationView = findViewById<BottomNavigationView>(R.id.bottomNavigationView)
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
         navHostFragment?.let {
             val navController = it.navController
+            NavigationUI.setupWithNavController(bottomNavigationView, navController)
             }
-            binding.btnExpenses.setOnClickListener {
-                val intent = Intent(this, Expenses::class.java)
-                startActivity(intent)
             }
         }
-    }
