@@ -8,6 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.cashroyale.DAO.UserDAO
+import com.example.cashroyale.Models.AppDatabase
+import com.example.cashroyale.Models.User
 import com.example.cashroyale.databinding.ActivityRegisterBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

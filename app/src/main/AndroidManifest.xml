@@ -16,13 +16,13 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".CalenderFragment"
+            android:name=".fragments.CalenderFragment"
             android:exported="false" />
         <activity
-            android:name=".StatisticsFragment"
+            android:name=".fragments.StatisticsFragment"
             android:exported="false" />
         <activity
-            android:name=".GoalFragment"
+            android:name=".fragments.GoalFragment"
             android:exported="false" />
         <activity
             android:name=".Register"

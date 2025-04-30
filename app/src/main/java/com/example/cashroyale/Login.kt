@@ -1,5 +1,6 @@
 package com.example.cashroyale
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -8,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.cashroyale.DAO.UserDAO
+import com.example.cashroyale.Models.AppDatabase
 import com.example.cashroyale.databinding.ActivityLoginBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,8 +53,16 @@ class Login : AppCompatActivity() {
                                     Toast.LENGTH_SHORT
                                 )
                                     .show()
-                                 intent = Intent(this@Login, MainActivity::class.java)
+
+                                // **SAVE LOGGED-IN EMAIL TO SHARED PREFERENCES**
+                                val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                                val editor = sharedPreferences.edit()
+                                editor.putString("loggedInEmail", checkUser.email)
+                                editor.apply() // Or editor.commit()
+
+                                intent = Intent(this@Login, MainActivity::class.java)
                                 startActivity(intent)
+                                finish() // Consider finishing the Login activity
                             } else {
                                 Toast.makeText(
                                     this@Login,

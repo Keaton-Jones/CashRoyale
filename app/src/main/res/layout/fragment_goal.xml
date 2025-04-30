@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".GoalFragment">
+    tools:context=".fragments.GoalFragment">
 
     <TextView
         android:layout_width="274dp"

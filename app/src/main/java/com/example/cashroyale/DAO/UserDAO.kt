@@ -1,8 +1,9 @@
-package com.example.cashroyale
+package com.example.cashroyale.DAO
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.example.cashroyale.Models.User
 
 @Dao
 interface UserDAO {
@@ -10,5 +11,5 @@ interface UserDAO {
     fun insertUser(user: User): Long // Returns the row ID
 
     @Query("SELECT * FROM User WHERE email = :email")
-    fun getUserByEmail(email: String): User?
+    suspend fun getUserByEmail(email: String): User?
 }

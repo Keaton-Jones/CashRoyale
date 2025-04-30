@@ -1,4 +1,4 @@
-package com.example.cashroyale
+package com.example.cashroyale.Models
 
 import android.os.Parcelable
 import androidx.room.Entity
