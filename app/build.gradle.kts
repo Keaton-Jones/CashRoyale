@@ -67,4 +67,7 @@ dependencies {
     implementation("androidx.room:room-ktx:2.5.2")
 
     implementation("androidx.palette:palette:1.0.0")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 }

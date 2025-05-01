@@ -1,11 +1,9 @@
-package com.example.cashroyale
+package com.example.cashroyale.fragments
 
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -13,7 +11,10 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.example.cashroyale.viewmodel.CategoryViewModelFactory
+import com.example.cashroyale.viewmodels.CategoryListViewModel
+import com.example.cashroyale.Models.Category
+import com.example.cashroyale.R
+import com.example.cashroyale.viewmodels.CategoryViewModelFactory
 
 class EditCategoryFragment : DialogFragment() {
     private var category: Category? = null
