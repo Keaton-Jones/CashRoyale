@@ -1,48 +1,44 @@
 package com.example.cashroyale
 
-import android.content.Intent
+import androidx.fragment.app.viewModels
 import android.os.Bundle
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import android.widget.ImageButton
 import com.example.cashroyale.databinding.FragmentCalenderBinding
 
 class CalenderFragment : Fragment() {
-
-    private var _binding: FragmentCalenderBinding? = null
-    private val binding get() = _binding!!
+private lateinit var binding: FragmentCalenderBinding
+    companion object {
+        fun newInstance() = CalenderFragment()
+    }
 
     private val viewModel: CalenderViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // TODO: Use the ViewModel
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentCalenderBinding.inflate(inflater, container, false)
-        return binding.root
-    }
+        val view = inflater.inflate(R.layout.fragment_calender, container, false)
+        val createCategoryImageButton: ImageButton = view.findViewById(R.id.createCategoryImageButton)
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-
-        binding.btnExpenses.setOnClickListener {
-            viewModel.onExpensesButtonClicked()
+        createCategoryImageButton.setOnClickListener {
+            showWidgetDialogFragment()
         }
 
-        viewModel.navigateToExpenses.observe(viewLifecycleOwner) { shouldNavigate ->
-            if (shouldNavigate == true) {
-                val intent = Intent(requireContext(), Expenses::class.java)
-                startActivity(intent)
-                viewModel.onExpensesNavigationComplete()
-            }
-        }
+        return view
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun showWidgetDialogFragment() {
+        val widgetDialogFragment = WidgetCategoriesFragment()
+        widgetDialogFragment.show(childFragmentManager, "WidgetDialogFragment")
     }
 }

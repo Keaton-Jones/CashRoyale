@@ -13,6 +13,9 @@
     <action
         android:id="@+id/action_calenderFragment_to_goalFragment"
         app:destination="@id/goalFragment" />
+        <action
+            android:id="@+id/action_calenderFragment_to_categoryListFragment"
+            app:destination="@id/categoryListFragment" />
     </fragment>
     <fragment
         android:id="@+id/goalFragment"
@@ -28,4 +31,13 @@
         android:name="com.example.cashroyale.StatisticsFragment"
         android:label="fragment_statistics"
         tools:layout="@layout/fragment_statistics" />
+    <fragment
+        android:id="@+id/categoryListFragment"
+        android:name="com.example.cashroyale.CategoryListFragment"
+        android:label="CategoryListFragment"
+        tools:layout="@layout/fragment_category_list" />
+
+    <action
+        android:id="@+id/action_global_categoryListFragment"
+        app:destination="@id/categoryListFragment" />
 </navigation>

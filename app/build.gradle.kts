@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     kotlin("kapt")
+    id("org.jetbrains.kotlin.plugin.parcelize")
 }
 
 android {
@@ -65,4 +66,5 @@ dependencies {
     kapt("androidx.room:room-compiler:2.5.2")
     implementation("androidx.room:room-ktx:2.5.2")
 
+    implementation("androidx.palette:palette:1.0.0")
 }
