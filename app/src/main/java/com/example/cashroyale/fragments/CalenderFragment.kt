@@ -1,6 +1,7 @@
 package com.example.cashroyale.fragments
 
 import android.app.AlertDialog
+import android.content.Intent
 import androidx.fragment.app.viewModels
 import android.os.Bundle
 import android.util.Log
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
+import com.example.cashroyale.Expenses
 import com.example.cashroyale.Models.AppDatabase
 import com.example.cashroyale.Models.User
 import com.example.cashroyale.viewmodels.CalenderViewModel
@@ -37,6 +39,12 @@ class CalenderFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_calender, container, false)
         val createCategoryImageButton: ImageButton = view.findViewById(R.id.createCategoryImageButton)
+
+        val expenseButton: View = view.findViewById(R.id.btnExpenses)
+        expenseButton.setOnClickListener {
+            val intent = Intent(requireContext(), Expenses::class.java)
+            startActivity(intent)
+        }
 
         createCategoryImageButton.setOnClickListener {
             showWidgetDialogFragment()
