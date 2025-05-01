@@ -33,6 +33,13 @@
         android:layout_width="match_parent"
         android:layout_height="48dp" />
 
+
+    <Spinner
+        android:id="@+id/transactionSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp" />
+
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

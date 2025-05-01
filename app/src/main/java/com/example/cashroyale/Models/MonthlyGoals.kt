@@ -25,5 +25,5 @@ data class MonthlyGoals(
     val userId: String, // Should match the type of User's primary key
     val maxGoalAmount: Double,
     val minGoalAmount: Double,
-    val goalSet: Boolean
+    val goalSet: Boolean = false
 ): Parcelable
