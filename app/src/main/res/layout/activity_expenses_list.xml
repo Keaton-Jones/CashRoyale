@@ -22,6 +22,9 @@
         app:layout_constraintVertical_bias="0.092" />
 
     <!-- Button to open calender -->
+
+    <!-- RecyclerView to show all the transactions -->
+
     <Button
         android:id="@+id/selectDateButton"
         android:layout_width="374dp"
@@ -30,16 +33,15 @@
         android:text="Select Date"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.432"
+        app:layout_constraintHorizontal_bias="0.486"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.175" />
+        app:layout_constraintVertical_bias="0.171" />
 
-    <!-- RecyclerView to show all the transactions -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/expenseRecyclerView"
-        android:layout_width="379dp"
-        android:layout_height="479dp"
+        android:layout_width="374dp"
+        android:layout_height="551dp"
         android:layout_margin="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

@@ -22,7 +22,7 @@ class ExpensesList : AppCompatActivity() {
     private lateinit var expensesList: MutableList<Expense>
     private lateinit var originalExpensesList: MutableList<Expense>
 
-    // no code is showing, smtn about version 11> needs setting permissions restricted
+    // no code is showing, versions < 11 have the permissions restricted
     private val REQUEST_CODE_PERMISSIONS = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
