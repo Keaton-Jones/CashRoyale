@@ -22,14 +22,17 @@
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".CalenderFragment"
-            android:exported="false" />
+            android:name=".fragments.CalenderFragment"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
         <activity
-            android:name=".StatisticsFragment"
-            android:exported="false" />
+            android:name=".fragments.StatisticsFragment"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
         <activity
-            android:name=".GoalFragment"
-            android:exported="false" />
+            android:name=".fragments.GoalFragment"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
         <activity
             android:name=".Register"
             android:exported="false" />

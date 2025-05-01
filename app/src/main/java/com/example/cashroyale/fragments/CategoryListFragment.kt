@@ -1,4 +1,4 @@
-package com.example.cashroyale
+package com.example.cashroyale.fragments
 
 import androidx.fragment.app.viewModels
 import android.os.Bundle
@@ -9,8 +9,11 @@ import android.view.ViewGroup
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.cashroyale.adapter.CategoryAdapter
-import com.example.cashroyale.viewmodel.CategoryViewModelFactory
+import com.example.cashroyale.viewmodels.CategoryListViewModel
+import com.example.cashroyale.Models.Category
+import com.example.cashroyale.R
+import com.example.cashroyale.viewmodels.CategoryAdapter
+import com.example.cashroyale.viewmodels.CategoryViewModelFactory
 
 class CategoryListFragment : Fragment() {
 

@@ -1,0 +1,71 @@
+name: build_and_test
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17' # You might need to adjust this based on your project
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          sdk-api-level: '33' # Adjust this to your target SDK level
+          ndk-api-level: '21' # Adjust this if you're using NDK
+          # Add any specific system images you need for emulators (if you run UI tests here)
+          # system-images: |
+          #   android-30;google_apis
+          #   android-31;google_apis_playstore
+          repositories: |
+            google
+            android
+            google-maven
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Cache Gradle Wrapper
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('./gradlew') }}
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-caches-
+
+      - name: Build and run unit tests
+        run: ./gradlew testDebugUnitTest
+
+      # Optional: Run Android Lint
+      - name: Run Android Lint
+        run: ./gradlew lintDebug
+
+      # Optional: Build the APK (for debugging)
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+
+
+      # Optional: Upload APK as artifact (for debugging)
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk

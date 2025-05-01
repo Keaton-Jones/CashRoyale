@@ -1,11 +1,9 @@
-package com.example.cashroyale
+package com.example.cashroyale.fragments
 
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -13,12 +11,16 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.example.cashroyale.viewmodel.CategoryViewModelFactory
+import com.example.cashroyale.viewmodels.CategoryListViewModel
+import com.example.cashroyale.Models.Category
+import com.example.cashroyale.R
+import com.example.cashroyale.viewmodels.CategoryViewModelFactory
 
 class EditCategoryFragment : DialogFragment() {
     private var category: Category? = null
     private var editCategoryNameEditText: EditText? = null
     private var editColorSpinner: Spinner? = null
+    private var editTypeSpinner: Spinner? = null // New Spinner for category type
     private val viewModel: CategoryListViewModel by activityViewModels {
         CategoryViewModelFactory(requireContext())
     }
@@ -50,6 +52,7 @@ class EditCategoryFragment : DialogFragment() {
 
         editCategoryNameEditText = view.findViewById(R.id.editCategoryNameEditText)
         editColorSpinner = view.findViewById(R.id.editColourSpinner)
+        editTypeSpinner = view.findViewById(R.id.editTypeSpinner) // Initialize the new Spinner
         val cancelButton = view.findViewById<Button>(R.id.editCancelButton)
         val saveButton = view.findViewById<Button>(R.id.editSaveButton)
 
@@ -64,8 +67,12 @@ class EditCategoryFragment : DialogFragment() {
             "White" to "#FFFFFF",
             "Black" to "#000000"
         )
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, colors)
-        editColorSpinner?.adapter = adapter
+        val colorAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, colors)
+        editColorSpinner?.adapter = colorAdapter
+
+        val types = arrayOf("income", "expense")
+        val typeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
+        editTypeSpinner?.adapter = typeAdapter
 
         category?.let {
             editCategoryNameEditText?.setText(it.name)
@@ -73,15 +80,20 @@ class EditCategoryFragment : DialogFragment() {
             if (colorIndex != -1) {
                 editColorSpinner?.setSelection(colorIndex)
             }
+            val typeIndex = types.indexOf(it.type)
+            if (typeIndex != -1) {
+                editTypeSpinner?.setSelection(typeIndex)
+            }
         }
 
         saveButton.setOnClickListener {
             val updatedName = editCategoryNameEditText?.text.toString().trim()
             val selectedColorName = editColorSpinner?.selectedItem.toString()
             val updatedColor = colorMap[selectedColorName] ?: "#808080" // Get hex code
+            val selectedType = editTypeSpinner?.selectedItem.toString()
 
             if (updatedName.isNotBlank() && category != null) {
-                val updatedCategory = category!!.copy(name = updatedName, color = updatedColor)
+                val updatedCategory = category!!.copy(name = updatedName, color = updatedColor, type = selectedType)
                 viewModel.updateCategory(updatedCategory)
                 dismiss()
             } else {

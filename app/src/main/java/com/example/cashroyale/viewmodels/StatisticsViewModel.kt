@@ -1,4 +1,4 @@
-package com.example.cashroyale
+package com.example.cashroyale.viewmodels
 
 import androidx.lifecycle.ViewModel
 

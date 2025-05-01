@@ -1,4 +1,4 @@
-package com.example.cashroyale.adapter
+package com.example.cashroyale.viewmodels
 
 import android.graphics.Color
 import android.view.LayoutInflater
@@ -8,7 +8,7 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cashroyale.R
-import com.example.cashroyale.Category
+import com.example.cashroyale.Models.Category
 
 class CategoryAdapter(
     private var categories: List<Category>,

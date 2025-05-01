@@ -1,4 +1,4 @@
-package com.example.cashroyale
+package com.example.cashroyale.Models
 
 import android.os.Parcelable
 import androidx.room.Entity
@@ -10,7 +10,8 @@ import kotlinx.parcelize.Parcelize
 data class Category(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val color: String
+    val color: String,
+    val type: String
 ): Parcelable
 
 
