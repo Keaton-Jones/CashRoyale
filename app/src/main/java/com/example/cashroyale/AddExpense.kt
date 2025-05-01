@@ -28,7 +28,7 @@ class AddExpense : AppCompatActivity() {
     private lateinit var categoryNames: List<String>
     private var selectedImageUri: Uri? = null
 
-    private val paymentMethods = listOf("Cash", "Credit Card", "Debit Card")
+    private val paymentMethods = listOf("Cash", "Credit Card", )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
