@@ -33,7 +33,6 @@ class AddExpense : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
-
         Description = findViewById(R.id.edtDescription)
         Amount = findViewById(R.id.edtAmount)
         Category = findViewById(R.id.spinCategory)
@@ -42,7 +41,6 @@ class AddExpense : AppCompatActivity() {
         PickImage = findViewById(R.id.btnPickImage)
         iPreview = findViewById(R.id.imageView)
         Save = findViewById(R.id.btnSave)
-
         appDatabase = AppDatabase.getDatabase(applicationContext)
 
         setupPaymentMethodSpinner()
