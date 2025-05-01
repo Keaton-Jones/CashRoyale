@@ -10,40 +10,31 @@ import com.example.cashroyale.DAO.CategoryDAO
 import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
 
-@Database(entities = [User::class, Category::class, MonthlyGoals::class], version = 4)
+@Database(entities = [User::class, Category::class, MonthlyGoals::class], version = 5)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDAO(): UserDAO
     abstract fun categoryDAO(): CategoryDAO
     abstract fun monthlyGoalDAO(): MonthlyGoalDAO
 
-    companion object{
+    companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        val MIGRATION_3_4 = object : Migration(3, 4) {
+        val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Create the monthly_goals table
-                database.execSQL(
-                    "CREATE TABLE IF NOT EXISTS `monthly_goals` (" +
-                            "`goalId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                            "`userId` TEXT NOT NULL, " +
-                            "`maxGoalAmount` REAL NOT NULL, " +
-                            "`minGoalAmount` REAL NOT NULL, " +
-                            "`goalSet` INTEGER NOT NULL, " + // Room stores booleans as 0 (false) or 1 (true)
-                            "FOREIGN KEY(`userId`) REFERENCES `User`(`email`) ON DELETE CASCADE )" // Assuming 'email' is your User identifier
-                )
-
-                // Create an index for the userId for faster querying
-                database.execSQL("CREATE INDEX IF NOT EXISTS `index_monthly_goals_userId` ON `monthly_goals` (`userId`)")
+                // Add the 'type' column to the 'categories' table.
+                database.execSQL("ALTER TABLE `category` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'expense'")
+                // The default value is set to 'expense'.  You can choose a different default if appropriate.
             }
         }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "cashroyale_database"
-                ).addMigrations(MIGRATION_3_4).build()
+                ).addMigrations(MIGRATION_4_5).build()
                 INSTANCE = instance
                 instance
             }

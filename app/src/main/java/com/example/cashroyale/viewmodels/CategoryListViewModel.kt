@@ -12,6 +12,10 @@ class CategoryListViewModel(private val categoryDao: CategoryDAO) : ViewModel() 
 
     val allCategories: LiveData<List<Category>> = categoryDao.getAllCategories().asLiveData()
 
+    fun getIncomeCategories(): LiveData<List<Category>> = categoryDao.getCategoriesByType("income").asLiveData()
+
+    fun getExpenseCategories(): LiveData<List<Category>> = categoryDao.getCategoriesByType("expense").asLiveData()
+
     fun deleteCategory(category: Category) {
         viewModelScope.launch {
             categoryDao.delete(category)
