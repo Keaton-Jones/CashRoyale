@@ -41,7 +41,6 @@ abstract class AppDatabase : RoomDatabase() {
         }
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // ✅ Create the new 'expenses' table
                 database.execSQL(
                     "CREATE TABLE IF NOT EXISTS `expenses` (" +
                             "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +

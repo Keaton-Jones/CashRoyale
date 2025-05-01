@@ -1,5 +1,6 @@
 package com.example.cashroyale
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -31,3 +32,4 @@ interface CategoryDAO {
     @Query("SELECT EXISTS(SELECT 1 FROM Category WHERE name = :categoryName)")
     suspend fun exists(categoryName: String): Boolean
 }
+
