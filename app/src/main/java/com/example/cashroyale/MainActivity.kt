@@ -1,7 +1,9 @@
 package com.example.cashroyale
 
 // Kotlin
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -19,6 +21,12 @@ class MainActivity : AppCompatActivity() {
         navHostFragment?.let {
             val navController = it.navController
             NavigationUI.setupWithNavController(bottomNavigationView, navController)
+        }
+
+        val goToExpensesButton: Button = findViewById(R.id.btnExpenseList)
+        goToExpensesButton.setOnClickListener {
+            val intent = Intent(this, ExpensesList::class.java)
+            startActivity(intent)
         }
     }
 }

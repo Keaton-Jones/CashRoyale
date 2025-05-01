@@ -18,13 +18,24 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navGraph="@navigation/nav_graph" />
 
-<!--    line 11 was red for me so i added the last two dependencies in module:app-->
-
     <com.google.android.material.bottomnavigation.BottomNavigationView
-    android:id="@+id/bottomNavigationView"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:menu="@menu/bottom_nav_menu" /> </androidx.constraintlayout.widget.ConstraintLayout>
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav_menu" />
+
+    <Button
+        android:id="@+id/btnExpenseList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="All Expenses"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.943"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.866" />
+</androidx.constraintlayout.widget.ConstraintLayout>
