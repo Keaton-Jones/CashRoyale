@@ -1,5 +1,6 @@
 package com.example.cashroyale
 
+import android.content.Intent
 import androidx.fragment.app.viewModels
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -32,6 +33,11 @@ private lateinit var binding: FragmentCalenderBinding
 
         createCategoryImageButton.setOnClickListener {
             showWidgetDialogFragment()
+        }
+        val expenseButton: View = view.findViewById(R.id.btnExpenses)
+        expenseButton.setOnClickListener {
+            val intent = Intent(requireContext(), Expenses::class.java)
+            startActivity(intent)
         }
 
         return view
