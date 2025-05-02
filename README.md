@@ -21,12 +21,12 @@ planning of these negative stigmas by:
 ➢ Offering offline functionality so users can track finances anywhere 
  
 App Navigation 
-1. Login and Registration 
+1. Login and Registration :
 Users will be met with a login screen, where they will enter a username and 
 password, and if they do not have one, they will have the option to create an 
 account. 
  
-2.  Home Page 
+2.  Home Page :
 Once a user logins in, they will be required to set a maximum and minimum 
 monthly goal. After this, they will see the home page, which will include details 
 such as remaining budget, amount spent, and monthly budget. The page will 
@@ -35,23 +35,23 @@ transactions. There will also be a navigation bar, which will direct the user to
 goals page, the calendar page, and their statistics. At the top of the page, user 
 will find a button to create and manage categories. 
 
-3.  Category Management 
+3.  Category Management :
 Users will be able to create, edit, delete, and manage categories while also 
 customizing each one with a unique color. There will also be the option to label 
 the category type e.g. income and expense. 
  
-4.  Add Expense  
+4.  Add Expense  :
 Users will be given the option to log any expenses that they may have. They will 
 also have the option to attach an image with each expense that they add. 
  
-5. Add Income 
+5. Add Income :
 Users will be given the option to log any income that they may have. They will 
 need to provide details such as the amount, date, and a short description. 
  
-6.  Budget Goals 
+6.  Budget Goals :
 Users will be able to set a minimum and maximum monthly spending goal. 
  
-7.  Expense History 
+7.  Expense History :
 Users will have the option to generate a list of expenses over a selectable date 
 range. 
  
