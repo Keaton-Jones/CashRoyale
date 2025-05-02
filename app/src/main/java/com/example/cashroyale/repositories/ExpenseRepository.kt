@@ -4,6 +4,7 @@ import com.example.cashroyale.DAO.ExpenseDAO
 import com.example.cashroyale.Models.Expense
 import kotlinx.coroutines.flow.Flow
 
+/** Ahmet Bostanciklioglu, Medium, https://medium.com/@ahmetbostanciklioglu/repository-pattern-2bcd99cd8a8b#:~:text=The%20Repository%20Pattern%20is%20a,APIs%2C%20and%20other%20external%20systems. */
 /**
  * Repository class that handles data operations for [Expense] entities.
  * It abstracts the data source (in this case, a Room database via [ExpenseDAO])

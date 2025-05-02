@@ -42,7 +42,7 @@ class ExpensesAdapter(private var expenses: List<Expense>) : RecyclerView.Adapte
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
         holder.description.text = expense.description
-        holder.amount.text = "Amount: $${expense.amount}"
+        holder.amount.text = "Amount: R${expense.amount}"
         holder.date.text = "Date: ${expense.date}"
         holder.category.text = "Category: ${expense.category}"
         // If there is an image URI, load and display the image; otherwise, hide the ImageView

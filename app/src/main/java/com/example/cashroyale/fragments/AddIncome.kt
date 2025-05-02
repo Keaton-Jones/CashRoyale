@@ -70,7 +70,7 @@ class AddIncome : AppCompatActivity() {
     private fun setupCategorySpinner() {
         // Fetches income categories from the database and populates the spinner
         lifecycleScope.launch {
-            appDatabase.categoryDAO().getCategoriesByType("Income").collect { categories ->
+            appDatabase.categoryDAO().getCategoriesByType("income").collect { categories ->
                 categoryNames = categories.map { it.name }
                 val adapter = ArrayAdapter(
                     this@AddIncome,

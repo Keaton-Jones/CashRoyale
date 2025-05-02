@@ -54,7 +54,7 @@ class WidgetCategoriesFragment : DialogFragment() {
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, colors)
         colourSpinner?.adapter = colorAdapter
         // Populate the transaction type spinner
-        val transactionTypes = arrayOf("Income", "Expense")
+        val transactionTypes = arrayOf("income", "expense")
         val transactionAdapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, transactionTypes)
         transactionSpinner?.adapter = transactionAdapter

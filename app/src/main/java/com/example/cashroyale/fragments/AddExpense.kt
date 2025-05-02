@@ -69,7 +69,7 @@ class AddExpense : AppCompatActivity() {
     private fun setupCategorySpinner() {
         // Fetch expense categories from the database and populate the spinner
         lifecycleScope.launch {
-            appDatabase.categoryDAO().getCategoriesByType("Expense").collect { categories ->
+            appDatabase.categoryDAO().getCategoriesByType("expense").collect { categories ->
                 categoryNames = categories.map { it.name }
                 val adapter = ArrayAdapter(
                     this@AddExpense,

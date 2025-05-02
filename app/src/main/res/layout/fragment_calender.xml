@@ -25,6 +25,7 @@
         android:layout_width="187dp"
         android:layout_height="48dp"
         android:backgroundTint="@color/black"
+        android:textColor="@color/white"
         android:text="Expenses"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -38,6 +39,7 @@
         android:layout_width="201dp"
         android:layout_height="51dp"
         android:backgroundTint="@color/black"
+        android:textColor="@color/white"
         android:text="Income"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -53,6 +55,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginBottom="16dp"
         android:backgroundTint="@color/black"
+        android:textColor="@color/white"
         android:text="View All Transactions"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

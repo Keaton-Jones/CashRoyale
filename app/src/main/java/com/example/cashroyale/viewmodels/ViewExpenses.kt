@@ -5,19 +5,16 @@ import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.flow.first
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cashroyale.Models.AppDatabase
 import com.example.cashroyale.Models.Expense
 import com.example.cashroyale.R
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.*
 
-/**
- * An Activity to display a list of expenses, with options to filter by date and category.
- */
 class ViewExpenses : AppCompatActivity() {
 
     private lateinit var edtSelectDate: EditText
@@ -30,7 +27,7 @@ class ViewExpenses : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_expenses_list)
 
-        // Initialize views
+        // Get references to views
         edtSelectDate = findViewById(R.id.edtSelectDate)
         recyclerView = findViewById(R.id.recyclerView)
         categorySpinner = findViewById(R.id.spinner)
@@ -39,53 +36,49 @@ class ViewExpenses : AppCompatActivity() {
         // Initialize the database
         appDatabase = AppDatabase.getDatabase(applicationContext)
 
-        // Set up RecyclerView
+        // Set up the RecyclerView
         recyclerView.layoutManager = LinearLayoutManager(this)
         expensesAdapter = ExpensesAdapter(listOf())
         recyclerView.adapter = expensesAdapter
 
-        // Load all expenses on initial load
+        // Load all expenses initially
         loadExpenses()
 
-        // Set up date selection functionality
+        // Set up the date picker
         edtSelectDate.setOnClickListener {
             showDatePicker()
         }
 
-        // Set up the button to return to the previous screen
+        // Set up return button
         returnButton.setOnClickListener {
             finish()
         }
 
-        // Load categories into the category filter Spinner
+        // Load categories into the Spinner
         loadCategoriesIntoSpinner()
 
-        // Set up listener for category selection changes
+        // Set up category selection listener
         categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
                 val selectedCategory = parent?.getItemAtPosition(position).toString()
                 if (selectedCategory == "All") {
-                    loadExpenses() // Show all expenses
+                    loadExpenses() // Show all expenses if "All" is selected
                 } else {
-                    loadExpensesByCategory(selectedCategory) // Show expenses for the selected category
+                    loadExpensesByCategory(selectedCategory) // Load expenses for selected category
                 }
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {
-                loadExpenses() // Default to showing all expenses
+                loadExpenses() // Default to showing all if nothing selected
             }
         }
     }
 
-    /**
-     * Loads all available categories from the database and populates the category filter Spinner.
-     * Includes an "All" option at the beginning of the list.
-     */
     private fun loadCategoriesIntoSpinner() {
         lifecycleScope.launch(Dispatchers.IO) {
             val categoriesFlow = appDatabase.categoryDAO().getAllCategories()
             val categories = categoriesFlow.first()
-            val categoryNames = mutableListOf("All") // Add "All" as the first filter option
+            val categoryNames = mutableListOf("All") // Add "All" as the first item
             categoryNames.addAll(categories.map { it.name })
 
             launch(Dispatchers.Main) {
@@ -95,14 +88,12 @@ class ViewExpenses : AppCompatActivity() {
                     categoryNames
                 )
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                categorySpinner.adapter = adapter // Set the adapter for the Spinner
+                categorySpinner.adapter = adapter // Set the adapter to the Spinner
             }
         }
     }
 
-    /**
-     * Displays a DatePickerDialog to allow the user to select a date for filtering expenses.
-     */
+    // Show a date picker dialog when the user clicks on the date field
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
         val year = calendar.get(Calendar.YEAR)
@@ -112,15 +103,13 @@ class ViewExpenses : AppCompatActivity() {
         val datePicker = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
             val selectedDate = "${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}"
             edtSelectDate.setText(selectedDate)
-            loadExpenses(selectedDate) // Load expenses for the chosen date
+            loadExpenses(selectedDate) // Load expenses for the selected date
         }, year, month, day)
 
-        datePicker.show() // Show the date picker
+        datePicker.show() // Display the date picker dialog
     }
 
-    /**
-     * Loads expenses from the database, optionally filtered by a specific date.
-     */
+    // Load expenses from the database (either all or filtered by selected date)
     private fun loadExpenses(date: String? = null) {
         lifecycleScope.launch(Dispatchers.IO) {
             val expensesList: List<Expense> = if (date != null) {
@@ -131,20 +120,18 @@ class ViewExpenses : AppCompatActivity() {
             }
 
             launch(Dispatchers.Main) {
-                expensesAdapter.updateExpenses(expensesList) // Update the RecyclerView with the loaded expenses
+                expensesAdapter.updateExpenses(expensesList)
             }
         }
     }
 
-    /**
-     * Loads expenses from the database filtered by a specific category.
-     */
+    // Load expenses based on selected category
     private fun loadExpensesByCategory(category: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             val filteredExpenses = appDatabase.categoryDAO().getExpensesByCategory(category).first()
 
             launch(Dispatchers.Main) {
-                expensesAdapter.updateExpenses(filteredExpenses) // Update the RecyclerView with the filtered expenses
+                expensesAdapter.updateExpenses(filteredExpenses)
             }
         }
     }

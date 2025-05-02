@@ -25,7 +25,8 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:text="Edit"
-        android:backgroundTint="@color/black"/>
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"/>
 
     <Button
         android:id="@+id/deleteButton"
@@ -33,6 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:text="Delete"
-        android:backgroundTint="@color/black"/>
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"/>
 
 </LinearLayout>

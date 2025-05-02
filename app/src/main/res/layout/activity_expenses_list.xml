@@ -33,19 +33,22 @@
         android:layout_height="635dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="1.0" />
 
     <Button
         android:id="@+id/button2"
-        android:layout_width="199dp"
-        android:layout_height="43dp"
+        android:layout_width="357dp"
+        android:layout_height="53dp"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
         android:text="return"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:backgroundTint="@color/black"
         app:layout_constraintVertical_bias="0.976" />
 
     <Spinner
