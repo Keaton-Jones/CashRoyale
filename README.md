@@ -160,7 +160,8 @@ Demonstration Video -
 YouTube video link : https://youtu.be/YkwjQNRFxYs 
 
 References :
-Web Colors : RapidTables , https://www.rapidtables.com/web/color/index.html 
+Web Colors : RapidTables , https://www.rapidtables.com/web/color/index.html
+
 ViewModel overview: Developers, 11 February 2025, 
 https://developer.android.com/topic/libraries/architecture/viewmodel 
 
