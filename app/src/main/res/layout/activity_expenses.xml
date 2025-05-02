@@ -32,6 +32,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.173" />
 
+    <!--initial idea, later discarded-->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="411dp"
@@ -43,6 +44,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.892" />
 
+    <!--Button to go to the list of expenses-->
     <Button
         android:id="@+id/button"
         android:layout_width="179dp"

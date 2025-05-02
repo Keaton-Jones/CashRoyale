@@ -23,13 +23,12 @@ class Expenses : AppCompatActivity() {
             insets
         }
 
-        // Button to navigate to Add Expense screen
         binding.btnAddExpense.setOnClickListener {
             val intent = Intent(this, AddExpense::class.java)
             startActivity(intent)
         }
 
-        // Button to navigate to View Expenses screen
+        // Button to go to expenses list
         binding.button.setOnClickListener {
             val intent = Intent(this, ViewExpenses::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
