@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.cashroyale.Expense
 import com.example.cashroyale.Models.Category
 import kotlinx.coroutines.flow.Flow
 
@@ -31,4 +32,8 @@ interface CategoryDAO {
 
     @Query("SELECT EXISTS(SELECT 1 FROM category WHERE name = :name)")
     fun exists(name: String): Boolean
+
+    @Query("SELECT * FROM expenses WHERE category = :category ORDER BY date DESC")
+    fun getExpensesByCategory(category: String): Flow<List<Expense>>
+
 }

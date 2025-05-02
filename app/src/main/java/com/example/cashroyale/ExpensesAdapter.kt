@@ -10,6 +10,7 @@ import com.squareup.picasso.Picasso
 
 class ExpensesAdapter(private var expenses: List<Expense>) : RecyclerView.Adapter<ExpensesAdapter.ExpenseViewHolder>() {
 
+    // Holds the views for each expense item
     inner class ExpenseViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val description: TextView = itemView.findViewById(R.id.tvDescription)
         val amount: TextView = itemView.findViewById(R.id.tvAmount)
@@ -18,11 +19,13 @@ class ExpensesAdapter(private var expenses: List<Expense>) : RecyclerView.Adapte
         val imageView: ImageView = itemView.findViewById(R.id.ivExpenseImage)
     }
 
+    // Creates a new view holder for each expense item
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ExpenseViewHolder {
         val itemView = LayoutInflater.from(parent.context).inflate(R.layout.item_expense, parent, false)
         return ExpenseViewHolder(itemView)
     }
 
+    // Binds the data to the views for each item in the list
     override fun onBindViewHolder(holder: ExpenseViewHolder, position: Int) {
         val expense = expenses[position]
         holder.description.text = expense.description
@@ -30,7 +33,7 @@ class ExpensesAdapter(private var expenses: List<Expense>) : RecyclerView.Adapte
         holder.date.text = "Date: ${expense.date}"
         holder.category.text = "Category: ${expense.category}"
 
-        // Load image using Picasso or hide the ImageView if no image
+        // If there is an image, display it; otherwise, hide the image view
         if (!expense.imageUri.isNullOrEmpty()) {
             holder.imageView.visibility = View.VISIBLE
             Picasso.get().load(expense.imageUri).into(holder.imageView)
@@ -39,10 +42,13 @@ class ExpensesAdapter(private var expenses: List<Expense>) : RecyclerView.Adapte
         }
     }
 
+    // Tells the adapter how many items there are in the list
     override fun getItemCount(): Int = expenses.size
 
+    // Updates the list of expenses and refreshes the view
     fun updateExpenses(newExpenses: List<Expense>) {
         expenses = newExpenses
         notifyDataSetChanged()
     }
 }
+

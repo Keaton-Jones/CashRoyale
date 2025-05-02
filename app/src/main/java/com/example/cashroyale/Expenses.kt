@@ -3,6 +3,7 @@ package com.example.cashroyale
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -23,17 +24,25 @@ class Expenses : AppCompatActivity() {
             insets
         }
 
-        // Button to navigate to Add Expense screen
         binding.btnAddExpense.setOnClickListener {
             val intent = Intent(this, AddExpense::class.java)
             startActivity(intent)
         }
 
-        // Button to navigate to View Expenses screen
+        // Button to go to expenses list
         binding.button.setOnClickListener {
             val intent = Intent(this, ViewExpenses::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             startActivity(intent)
         }
+
+        val imageView2: ImageView = findViewById(R.id.imageView2)
+        imageView2.setOnClickListener {
+            // Navigate back to MainActivity
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+
         }
+
+    }
 }
