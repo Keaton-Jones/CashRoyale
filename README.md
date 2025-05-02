@@ -169,12 +169,11 @@ stanescu.medium.com/should-recyclerview-adapter-have-the-responsibility-of-data
 in-mvvm-architecture-2688d91455f5 
 
 Medium: Ahmet Bostanciklioglu, 26 August 2023 , 
-https://medium.com/@ahmetbostanciklioglu/repository-pattern
-2bcd99cd8a8b#:~:text=The%20Repository%20Pattern%20is%20a,APIs%2C%20and%2
+https://medium.com/@ahmetbostanciklioglu/repository-pattern2bcd99cd8a8b#:~:text=The%20Repository%20Pattern%20is%20a,APIs%2C%20and%2
  0other%20external%20systems. 
  
-Medium: Dilip Patel, 20 June 2024, https://medium.com/@dilip2882/why-use
-viewmodel-factory-understanding-parameterized-viewmodels-2dbfcf92a11d 
+Medium: Dilip Patel, 20 June 2024, https://medium.com/@dilip2882/why-useviewmodel-factory-understanding-parameterized-viewmodels-2dbfcf92a11d 
+
 Recommendations for Android architecture: Developers, 10 February 2025 , 
 http://developer.android.com/topic/architecture/recommendations 
 
