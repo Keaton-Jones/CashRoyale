@@ -3,14 +3,13 @@ package com.example.cashroyale.fragments
 import android.app.AlertDialog
 import android.app.Dialog
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.DialogFragment
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
-import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.cashroyale.DAO.CategoryDAO
@@ -22,12 +21,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * A simple [Fragment] subclass.
- * Use the [WidgetCategoriesFragment.newInstance] factory method to
- * create an instance of this fragment.
+ * A DialogFragment for adding new categories.
  */
 class WidgetCategoriesFragment : DialogFragment() {
-    // TODO: Rename and change types of parameters
     private var categoryNameEditText: EditText? = null
     private var colourSpinner: Spinner? = null
     private var transactionSpinner: Spinner? = null
@@ -41,38 +37,43 @@ class WidgetCategoriesFragment : DialogFragment() {
         val view = inflater.inflate(R.layout.fragment_widget_categories, null)
         builder.setView(view)
 
+        // Initialize database and DAO
         appDatabase = AppDatabase.getDatabase(requireContext())
         categoryDao = appDatabase.categoryDAO()
+        // Initialize UI elements
         categoryNameEditText = view.findViewById(R.id.categoryNameEditText)
         colourSpinner = view.findViewById(R.id.colourSpinner)
         transactionSpinner = view.findViewById(R.id.transactionSpinner)
         val okButton = view.findViewById<Button>(R.id.widgetOkButton)
         val cancelButton = view.findViewById<Button>(R.id.widgetCancelButton)
+        manageCategoriesButton = view.findViewById(R.id.manageCategoriesButton)
 
         // Populate the color spinner
-        val colors = arrayOf("Red", "Green", "Blue", "Yellow", "Pink", "Orange", "White", "Black") // Add your desired colors
-        val adapter =
+        val colors = arrayOf("Red", "Green", "Blue", "Yellow", "Pink", "Orange", "White", "Black")
+        val colorAdapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, colors)
-        colourSpinner?.adapter = adapter
+        colourSpinner?.adapter = colorAdapter
+        // Populate the transaction type spinner
+        val transactionTypes = arrayOf("income", "expense")
+        val transactionAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, transactionTypes)
+        transactionSpinner?.adapter = transactionAdapter
 
-        val types = arrayOf("income", "expense")
-        val typeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
-        transactionSpinner?.adapter = typeAdapter
-
+        // Set OnClickListener for the OK button to save the new category
         okButton.setOnClickListener {
-            val categoryName = categoryNameEditText?.text.toString().trim() //trim the input
+            val categoryName = categoryNameEditText?.text.toString().trim() // Remove leading/trailing whitespace
             val selectedColor = colourSpinner?.selectedItem.toString()
-            val selectedType = transactionSpinner?.selectedItem.toString()
-
+            val selectedTransaction = transactionSpinner?.selectedItem.toString()
 
             if (categoryName.isNotBlank()) {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (!categoryDao.exists(categoryName)) { // Check if the category exists
-                        val category = Category(name = categoryName, color = selectedColor, type = selectedType )
-                        categoryDao.insert(category)
+                    // Check if a category with the same name already exists
+                    if (!categoryDao.exists(categoryName)) {
+                        val category = Category(name = categoryName, color = selectedColor, type = selectedTransaction)
+                        categoryDao.insert(category) // Insert the new category into the database
                         withContext(Dispatchers.Main) {
                             Toast.makeText(requireContext(), "Category added", Toast.LENGTH_SHORT).show()
-                            dismiss()
+                            dismiss() // Close the dialog
                         }
                     } else {
                         withContext(Dispatchers.Main){
@@ -85,15 +86,15 @@ class WidgetCategoriesFragment : DialogFragment() {
             }
         }
 
+        // Set OnClickListener for the Cancel button to dismiss the dialog
         cancelButton.setOnClickListener {
             dismiss()
         }
-        manageCategoriesButton = view.findViewById(R.id.manageCategoriesButton)
-        manageCategoriesButton?.setOnClickListener {
-            dismiss() // Dismiss the widget
-            // Navigate to the CategoryListFragment
-            findNavController().navigate(R.id.action_calenderFragment_to_categoryListFragment)
 
+        // Set OnClickListener for the Manage Categories button to navigate to the CategoryListFragment
+        manageCategoriesButton?.setOnClickListener {
+            dismiss() // Close the current dialog
+            findNavController().navigate(R.id.action_calenderFragment_to_categoryListFragment)
         }
 
         return builder.create()
@@ -101,7 +102,10 @@ class WidgetCategoriesFragment : DialogFragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        // Clear references to views to prevent memory leaks
         categoryNameEditText = null
         colourSpinner = null
+        transactionSpinner = null
+        manageCategoriesButton = null
     }
 }

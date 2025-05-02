@@ -16,6 +16,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Activity for user login. Allows existing users to log in and provides a link to the registration screen.
+ */
 class Login : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
@@ -27,25 +30,29 @@ class Login : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(binding.root)
 
+        // Initialize the User Data Access Object
         userDAO = AppDatabase.getDatabase(this).userDAO()
 
+        // Handle edge-to-edge screen display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
+        // Set click listener for the login button
         binding.loginButton.setOnClickListener() {
             val email = binding.emailEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
-
-            if (email != "" && password != "") {
+            // Check if both email and password fields are filled
+            if (email.isNotEmpty() && password.isNotEmpty()) {
                 lifecycleScope.launch(Dispatchers.IO) {
                     val checkUser = userDAO.getUserByEmail(email)
 
                     withContext(Dispatchers.Main) {
                         if (checkUser != null) {
+                            // Verify the entered password against the stored password
                             if (checkUser.password == password) {
                                 Toast.makeText(
                                     this@Login,
@@ -58,11 +65,12 @@ class Login : AppCompatActivity() {
                                 val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                                 val editor = sharedPreferences.edit()
                                 editor.putString("loggedInEmail", checkUser.email)
-                                editor.apply() // Or editor.commit()
+                                editor.apply() // Asynchronously saves the changes
 
+                                // Navigate to the main activity
                                 intent = Intent(this@Login, MainActivity::class.java)
                                 startActivity(intent)
-                                finish() // Consider finishing the Login activity
+                                finish() // Prevent the user from going back to the login screen
                             } else {
                                 Toast.makeText(
                                     this@Login,
@@ -89,10 +97,11 @@ class Login : AppCompatActivity() {
             }
         }
 
+        // Set click listener for the register button to navigate to the registration screen
         binding.registerButton.setOnClickListener(){
             intent = Intent(this, Register::class.java)
             startActivity(intent)
-            finish()
+            finish() // Prevent the user from going back to the login screen on back press
         }
     }
 }

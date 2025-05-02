@@ -18,7 +18,7 @@ import com.example.cashroyale.viewmodels.CategoryViewModelFactory
 class CategoryListFragment : Fragment() {
 
     private val viewModel: CategoryListViewModel by viewModels {
-        CategoryViewModelFactory(requireContext()) // Assuming you have a ViewModelFactory
+        CategoryViewModelFactory(requireContext()) // Initializes the ViewModel with a Factory
     }
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var adapter: CategoryAdapter
@@ -28,18 +28,22 @@ class CategoryListFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // Inflates the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_category_list, container, false)
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
-        categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext()) // Sets the layout manager for the RecyclerView
         goToCalendarButton = view.findViewById(R.id.goToCalendarButton)
 
+        // Initializes the CategoryAdapter with an empty list and click listeners
         adapter = CategoryAdapter(emptyList(), this::onEditCategory, this::onDeleteCategory)
         categoryRecyclerView.adapter = adapter
 
+        // Observes the LiveData of all categories from the ViewModel
         viewModel.allCategories.observe(viewLifecycleOwner) { categories ->
-            adapter.updateList(categories)
+            adapter.updateList(categories) // Updates the RecyclerView adapter with the new list of categories
         }
 
+        // Sets an OnClickListener for the button to navigate to the CalenderFragment
         goToCalendarButton?.setOnClickListener {
             findNavController().navigate(R.id.calenderFragment)
         }
@@ -47,15 +51,17 @@ class CategoryListFragment : Fragment() {
         return view
     }
 
+    /** Handles the edit action for a category. */
     private fun onEditCategory(category: Category) {
-        // Implement logic to open an edit dialog/screen for the category
+        // Creates and shows the EditCategoryFragment dialog for the selected category
         val editDialogFragment = EditCategoryFragment.newInstance(category)
         editDialogFragment.show(childFragmentManager, "editCategoryDialog")
     }
 
+    /** Handles the delete action for a category. */
     private fun onDeleteCategory(category: Category) {
-        // Implement logic to show a confirmation dialog and then delete the category
-        // You'll need to call a ViewModel function to delete from the database
+        // Calls the ViewModel function to delete the selected category
         viewModel.deleteCategory(category)
+        // The UI will be updated automatically through the LiveData observation
     }
 }

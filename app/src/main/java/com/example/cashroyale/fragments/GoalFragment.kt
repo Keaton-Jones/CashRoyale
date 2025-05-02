@@ -12,21 +12,25 @@ import com.example.cashroyale.R
 class GoalFragment : Fragment() {
 
     companion object {
+        /** Creates a new instance of the GoalFragment. */
         fun newInstance() = GoalFragment()
     }
 
-    private val viewModel: GoalViewModel by viewModels()
+    private val viewModel: GoalViewModel by viewModels() // Initializes the ViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // TODO: Use the ViewModel
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        // Inflates the layout for this fragment
         return inflater.inflate(R.layout.fragment_goal, container, false)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
     }
 }

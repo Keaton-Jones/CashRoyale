@@ -4,17 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/rokuPurple"
     tools:context=".fragments.CalenderFragment">
 
-    <TextView
-        android:layout_width="206dp"
-        android:layout_height="73dp"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="268dp"
-        android:text="Calender"
-        android:textSize="50dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageButton
         android:id="@+id/createCategoryImageButton"
@@ -25,7 +17,141 @@
         android:src="@android:drawable/ic_menu_add"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:backgroundTint="@color/black"
         android:contentDescription="Create Category"/>
+
+    <Button
+        android:id="@+id/btnExpenses"
+        android:layout_width="187dp"
+        android:layout_height="48dp"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
+        android:text="Expenses"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.882" />
+
+    <Button
+        android:id="@+id/btnIncome"
+        android:layout_width="201dp"
+        android:layout_height="51dp"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
+        android:text="Income"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.038"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.886" />
+
+    <Button
+        android:id="@+id/btnViewExpenses"
+        android:layout_width="395dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/black"
+        android:textColor="@color/white"
+        android:text="View All Transactions"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/numRemainingBudgetTextView"
+        android:layout_width="366dp"
+        android:layout_height="63dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="116dp"
+        android:text="TextView"
+        android:textSize="30dp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/remainingBudgetTextView"
+        android:layout_width="238dp"
+        android:layout_height="37dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="64dp"
+        android:text="Remaining Budget:"
+        android:textColor="@color/black"
+        android:textSize="20dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/amountSpentTextView"
+        android:layout_width="99dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="12dp"
+        android:text="Amount Spent:"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/numRemainingBudgetTextView" />
+
+    <TextView
+        android:id="@+id/minBudgetTextView"
+        android:layout_width="133dp"
+        android:layout_height="34dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:text="Min Monthly Budget:"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toEndOf="@+id/numAmountSpentTextView"
+        app:layout_constraintTop_toBottomOf="@+id/numRemainingBudgetTextView" />
+
+    <TextView
+        android:id="@+id/maxBudgetTextView"
+        android:layout_width="135dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:text="Max Monthly Budget:"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toEndOf="@+id/minBudgetTextView"
+        app:layout_constraintTop_toBottomOf="@+id/numRemainingBudgetTextView" />
+
+    <TextView
+        android:id="@+id/numAmountSpentTextView"
+        android:layout_width="99dp"
+        android:layout_height="34dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+        android:text="TextView"
+        android:textSize="20dp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/amountSpentTextView" />
+
+    <TextView
+        android:id="@+id/numMinBudgetTextView"
+        android:layout_width="131dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:text="TextView"
+        android:textSize="20dp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toEndOf="@+id/numAmountSpentTextView"
+        app:layout_constraintTop_toBottomOf="@+id/minBudgetTextView" />
+
+    <TextView
+        android:id="@+id/numMaxBudgetTextView"
+        android:layout_width="130dp"
+        android:layout_height="37dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:text="TextView"
+        android:textSize="20dp"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toEndOf="@+id/numMinBudgetTextView"
+        app:layout_constraintTop_toBottomOf="@+id/maxBudgetTextView" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
