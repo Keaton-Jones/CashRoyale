@@ -164,8 +164,7 @@ Web Colors : RapidTables , https://www.rapidtables.com/web/color/index.html
 ViewModel overview: Developers, 11 February 2025, 
 https://developer.android.com/topic/libraries/architecture/viewmodel 
 
-Medium: Paul Stanescu, 23 September 2019, https://paulstanescu.medium.com/should-recyclerview-adapter-have-the-responsibility-of-data
-in-mvvm-architecture-2688d91455f5 
+Medium: Paul Stanescu, 23 September 2019, https://paulstanescu.medium.com/should-recyclerview-adapter-have-the-responsibility-of-datain-mvvm-architecture-2688d91455f5 
 
 Medium: Ahmet Bostanciklioglu, 26 August 2023 , 
 https://medium.com/@ahmetbostanciklioglu/repository-pattern2bcd99cd8a8b#:~:text=The%20Repository%20Pattern%20is%20a,APIs%2C%20and%20other%20external%20systems. 
