@@ -13,6 +13,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Toast
 import com.example.cashroyale.Expenses
+import com.example.cashroyale.IncomePage
 import com.example.cashroyale.Models.AppDatabase
 import com.example.cashroyale.Models.User
 import com.example.cashroyale.viewmodels.CalenderViewModel
@@ -45,6 +46,13 @@ class CalenderFragment : Fragment() {
             val intent = Intent(requireContext(), Expenses::class.java)
             startActivity(intent)
         }
+
+        val incomeButton: View = view.findViewById(R.id.btnIncome)
+        incomeButton.setOnClickListener {
+            val intent = Intent(requireContext(), IncomePage::class.java)
+            startActivity(intent)
+        }
+
 
         createCategoryImageButton.setOnClickListener {
             showWidgetDialogFragment()

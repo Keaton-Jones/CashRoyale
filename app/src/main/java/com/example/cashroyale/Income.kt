@@ -25,6 +25,6 @@ data class Income(
     val date: String,
     val paymentMethod: String,
     val category: String,
-    val imageUri: String?
+    val imageUri: String?,
     val userId: String
 )
