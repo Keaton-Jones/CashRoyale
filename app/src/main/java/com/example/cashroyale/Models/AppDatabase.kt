@@ -7,35 +7,140 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.cashroyale.DAO.CategoryDAO
+import com.example.cashroyale.DAO.IncomeDAO
 import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
+import com.example.cashroyale.Expense
+import com.example.cashroyale.ExpenseDAO
+import com.example.cashroyale.Income
 
-@Database(entities = [User::class, Category::class, MonthlyGoals::class], version = 5)
+@Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class, Income::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDAO(): UserDAO
     abstract fun categoryDAO(): CategoryDAO
     abstract fun monthlyGoalDAO(): MonthlyGoalDAO
+    abstract fun expenseDAO(): ExpenseDAO
+    abstract fun incomeDAO(): IncomeDAO
 
-    companion object{
+    companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-        val MIGRATION_4_5 = object : Migration(4, 5) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                // Add the 'type' column to the 'categories' table.
-                database.execSQL("ALTER TABLE `categories` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'expense'")
-                // The default value is set to 'expense'.  You can choose a different default if appropriate.
-            }
-        }
+
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "cashroyale_database"
-                ).addMigrations(MIGRATION_4_5).build()
+                    "cash_royale_db"
+                )
+                    .addMigrations(
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6,
+                        MIGRATION_6_7,
+                        MIGRATION_7_8
+                    )
+                    .build()
                 INSTANCE = instance
                 instance
+            }
+        }
+
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `Category_New` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `color` TEXT NOT NULL
+                    )
+                """.trimIndent())
+                database.execSQL("INSERT INTO `Category_New` (`name`, `color`) SELECT `name`, `color` FROM `Category`")
+                database.execSQL("DROP TABLE `Category`")
+                database.execSQL("ALTER TABLE `Category_New` RENAME TO `Category`")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `expenses` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `description` TEXT NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `date` TEXT NOT NULL,
+                        `paymentMethod` TEXT NOT NULL,
+                        `category` TEXT NOT NULL,
+                        `imageUri` TEXT
+                    )
+                """.trimIndent())
+            }
+        }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE `Category` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'expense'")
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("DROP TABLE IF EXISTS `monthly_goals`")
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `monthly_goals` (
+                        `goalId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `goalSet` INTEGER NOT NULL,
+                        `maxGoalAmount` REAL NOT NULL,
+                        `minGoalAmount` REAL NOT NULL,
+                        `userId` TEXT NOT NULL,
+                        FOREIGN KEY(`userId`) REFERENCES `User`(`email`) ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                database.execSQL("""
+                    CREATE INDEX IF NOT EXISTS `index_monthly_goals_userId` 
+                    ON `monthly_goals` (`userId`)
+                """.trimIndent())
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `income` (
+                        `incomeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `description` TEXT NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `date` TEXT NOT NULL,
+                        `paymentMethod` TEXT NOT NULL,
+                        `category` TEXT NOT NULL,
+                        `imageUri` TEXT,
+                        `userId` TEXT NOT NULL,
+                        FOREIGN KEY(`userId`) REFERENCES `User`(`email`) ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                database.execSQL("""
+                    CREATE INDEX IF NOT EXISTS `index_income_userId` 
+                    ON `income` (`userId`)
+                """.trimIndent())
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("DROP TABLE IF EXISTS `income`")
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `income` (
+                        `incomeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `description` TEXT NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `date` TEXT NOT NULL,
+                        `paymentMethod` TEXT NOT NULL,
+                        `category` TEXT NOT NULL,
+                        `imageUri` TEXT
+                    )
+                """.trimIndent())
             }
         }
     }

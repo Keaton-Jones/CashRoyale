@@ -31,6 +31,7 @@ class WidgetCategoriesFragment : DialogFragment() {
     private var categoryNameEditText: EditText? = null
     private var colourSpinner: Spinner? = null
     private var transactionSpinner: Spinner? = null
+    private var transactionSpinner: Spinner? = null
     private var manageCategoriesButton: Button? = null
     private lateinit var appDatabase: AppDatabase
     private lateinit var categoryDao: CategoryDAO
@@ -54,21 +55,20 @@ class WidgetCategoriesFragment : DialogFragment() {
         val adapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, colors)
         colourSpinner?.adapter = adapter
-
-        val types = arrayOf("income", "expense")
-        val typeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, types)
-        transactionSpinner?.adapter = typeAdapter
+        val transactionTypes = arrayOf("Income", "Expense")
+        val transactionAdapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, transactionTypes)
+        transactionSpinner?.adapter = transactionAdapter
 
         okButton.setOnClickListener {
             val categoryName = categoryNameEditText?.text.toString().trim() //trim the input
             val selectedColor = colourSpinner?.selectedItem.toString()
-            val selectedType = transactionSpinner?.selectedItem.toString()
-
+            val selectedTransaction = transactionSpinner?.selectedItem.toString()
 
             if (categoryName.isNotBlank()) {
                 lifecycleScope.launch(Dispatchers.IO) {
-                    if (!categoryDao.exists(categoryName)) { // Check if the category exists
-                        val category = Category(name = categoryName, color = selectedColor, type = selectedType )
+                    if (!categoryDao.exists(categoryName)) {
+                        val category = Category(name = categoryName, color = selectedColor, type = selectedTransaction)
                         categoryDao.insert(category)
                         withContext(Dispatchers.Main) {
                             Toast.makeText(requireContext(), "Category added", Toast.LENGTH_SHORT).show()

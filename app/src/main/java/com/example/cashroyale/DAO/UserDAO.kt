@@ -8,7 +8,7 @@ import com.example.cashroyale.Models.User
 @Dao
 interface UserDAO {
     @Insert
-    fun insertUser(user: User): Long // Returns the row ID
+    fun insertUser(user: User): Long
 
     @Query("SELECT * FROM User WHERE email = :email")
     suspend fun getUserByEmail(email: String): User?
