@@ -7,18 +7,21 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.cashroyale.DAO.CategoryDAO
+import com.example.cashroyale.DAO.IncomeDAO
 import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
 import com.example.cashroyale.ExpenseDAO
 import com.example.cashroyale.Expense
+import com.example.cashroyale.Income
 
-@Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class], version = 6)
+@Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class, Income::class], version = 7)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDAO(): UserDAO
     abstract fun categoryDAO(): CategoryDAO
     abstract fun monthlyGoalDAO(): MonthlyGoalDAO
     abstract fun expenseDAO(): ExpenseDAO
+    abstract fun incomeDAO(): IncomeDAO
 
     companion object {
         @Volatile
@@ -31,7 +34,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "cash_royale_db"
                 )
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .addMigrations(
+                        MIGRATION_2_3,
+                        MIGRATION_3_4,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6,
+                        MIGRATION_6_7
+                    )
                     .build()
                 INSTANCE = instance
                 instance
@@ -78,7 +87,6 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("DROP TABLE IF EXISTS `monthly_goals`")
-
                 database.execSQL("""
                     CREATE TABLE IF NOT EXISTS `monthly_goals` (
                         `goalId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -86,13 +94,34 @@ abstract class AppDatabase : RoomDatabase() {
                         `maxGoalAmount` REAL NOT NULL,
                         `minGoalAmount` REAL NOT NULL,
                         `userId` TEXT NOT NULL,
-                        FOREIGN KEY(`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE
+                        FOREIGN KEY(`userId`) REFERENCES `User`(`email`) ON DELETE CASCADE
                     )
                 """.trimIndent())
-
                 database.execSQL("""
                     CREATE INDEX IF NOT EXISTS `index_monthly_goals_userId` 
                     ON `monthly_goals` (`userId`)
+                """.trimIndent())
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `income` (
+                        `incomeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `description` TEXT NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `date` TEXT NOT NULL,
+                        `paymentMethod` TEXT NOT NULL,
+                        `category` TEXT NOT NULL,
+                        `imageUri` TEXT,
+                        `userId` TEXT NOT NULL,
+                        FOREIGN KEY(`userId`) REFERENCES `User`(`email`) ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                database.execSQL("""
+                    CREATE INDEX IF NOT EXISTS `index_income_userId` 
+                    ON `income` (`userId`)
                 """.trimIndent())
             }
         }
