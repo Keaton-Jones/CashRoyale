@@ -123,14 +123,21 @@ class ViewExpenses : AppCompatActivity() {
         }
     }
 
-    // Load expenses based on selected category
     private fun loadExpensesByCategory(category: String) {
         lifecycleScope.launch(Dispatchers.IO) {
-            val filteredExpenses = appDatabase.categoryDAO().getExpensesByCategory(category).first()
+            // gets expenses using name and category
+            val filteredExpenses = if (category == "All") {
+                // Show all if all
+                appDatabase.expenseDAO().getAllExpensesOnce()
+            } else {
+                // Show filtered, hopefully
+                appDatabase.categoryDAO().getExpensesByCategory(category).first()
+            }
 
             launch(Dispatchers.Main) {
                 expensesAdapter.updateExpenses(filteredExpenses)
             }
         }
     }
+
 }
