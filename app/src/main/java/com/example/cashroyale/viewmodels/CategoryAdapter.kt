@@ -10,12 +10,20 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.cashroyale.R
 import com.example.cashroyale.Models.Category
 
+/**
+ * Adapter for displaying a list of Category items in a RecyclerView.
+ * Provides functionality for displaying category name and color, as well as edit and delete actions.
+ */
 class CategoryAdapter(
     private var categories: List<Category>,
     private val onEditClicked: (Category) -> Unit,
     private val onDeleteClicked: (Category) -> Unit
 ) : RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>() {
 
+    /**
+     * ViewHolder class for representing each category item in the RecyclerView.
+     * Holds references to the views within the item layout.
+     */
     class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.categoryNameTextView)
         val colorView: View = itemView.findViewById(R.id.categoryColorView)
@@ -23,18 +31,28 @@ class CategoryAdapter(
         val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
     }
 
+    /**
+     * Called when RecyclerView needs a new ViewHolder of the given type to represent an item.
+     * Inflates the item layout and creates a new CategoryViewHolder.
+     * @return A new CategoryViewHolder that holds a View of the layout for each item.
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val itemView = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_category, parent, false)
         return CategoryViewHolder(itemView)
     }
 
+    /**
+     * Called by RecyclerView to display the data at the specified position.
+     * Updates the contents of the ViewHolder to reflect the item at the given position.
+     */
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val currentCategory = categories[position]
         holder.nameTextView.text = currentCategory.name
         try {
             holder.colorView.setBackgroundColor(Color.parseColor(currentCategory.color))
         } catch (e: IllegalArgumentException) {
+            // Handle the case where the color string is invalid
             holder.colorView.setBackgroundColor(Color.GRAY)
         }
 
@@ -47,10 +65,18 @@ class CategoryAdapter(
         }
     }
 
+    /**
+     * Returns the total number of items in the data set held by the adapter.
+     *
+     * @return The size of the categories list.
+     */
     override fun getItemCount() = categories.size
 
+    /**
+     * Updates the list of categories displayed by the adapter and refreshes the RecyclerView.
+     */
     fun updateList(newList: List<Category>) {
         categories = newList
-        notifyDataSetChanged()
+        notifyDataSetChanged() // Informs the RecyclerView that the underlying data has changed
     }
 }

@@ -36,10 +36,12 @@ class AddExpense : AppCompatActivity() {
     private var selectedImageUri: Uri? = null
 
     private val paymentMethods = listOf("Cash", "Credit Card")
+    private val IMAGE_PICK_CODE = 1001 // Constant for image pick request
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
+        // Initialize UI elements
         Description = findViewById(R.id.edtDescription)
         Amount = findViewById(R.id.edtAmount)
         Category = findViewById(R.id.spinCategory)
@@ -50,24 +52,25 @@ class AddExpense : AppCompatActivity() {
         Save = findViewById(R.id.btnSave)
         appDatabase = AppDatabase.getDatabase(applicationContext)
 
-        setupPaymentMethodSpinner()
-        setupCategorySpinner()
-        setupDatePicker()
-        setupImagePicker()
-        setupSaveButton()
+        setupPaymentMethodSpinner() // Set up the payment method dropdown
+        setupCategorySpinner()    // Set up the category dropdown
+        setupDatePicker()         // Set up the date picker functionality
+        setupImagePicker()        // Set up the image picking functionality
+        setupSaveButton()         // Set up the save button functionality
     }
 
     private fun setupPaymentMethodSpinner() {
+        // Create an adapter for the payment methods spinner
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         PaymentMethod.adapter = adapter
     }
 
     private fun setupCategorySpinner() {
+        // Fetch expense categories from the database and populate the spinner
         lifecycleScope.launch {
             appDatabase.categoryDAO().getCategoriesByType("Expense").collect { categories ->
                 categoryNames = categories.map { it.name }
-
                 val adapter = ArrayAdapter(
                     this@AddExpense,
                     android.R.layout.simple_spinner_item,
@@ -80,6 +83,7 @@ class AddExpense : AppCompatActivity() {
     }
 
     private fun setupDatePicker() {
+        // Set up an OnClickListener for the date EditText to show a DatePickerDialog
         Date.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
@@ -90,12 +94,12 @@ class AddExpense : AppCompatActivity() {
                 val selectedDate = "${selectedYear}-${(selectedMonth + 1).toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}"
                 Date.setText(selectedDate)
             }, year, month, day)
-
             datePicker.show()
         }
     }
 
     private fun setupImagePicker() {
+        // Set up an OnClickListener for the PickImage button to open the image gallery
         PickImage.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             startActivityForResult(intent, IMAGE_PICK_CODE)
@@ -104,6 +108,7 @@ class AddExpense : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+        // Handle the result from the image picker intent
         if (requestCode == IMAGE_PICK_CODE && resultCode == Activity.RESULT_OK) {
             selectedImageUri = data?.data
             iPreview.setImageURI(selectedImageUri)
@@ -111,6 +116,7 @@ class AddExpense : AppCompatActivity() {
     }
 
     private fun setupSaveButton() {
+        // Set up an OnClickListener for the Save button to save the expense to the database
         Save.setOnClickListener {
             val description = Description.text.toString()
             val amountText = Amount.text.toString()
@@ -118,6 +124,7 @@ class AddExpense : AppCompatActivity() {
             val paymentMethod = PaymentMethod.selectedItem.toString()
             val category = Category.selectedItem.toString()
 
+            // Validate if all fields are filled
             if (description.isBlank() || amountText.isBlank() || date.isBlank() || category.isBlank()) {
                 Toast.makeText(this, "Please fill in all the fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -138,16 +145,14 @@ class AddExpense : AppCompatActivity() {
                 imageUri = selectedImageUri?.toString()
             )
 
+            // Insert the new expense into the database
             lifecycleScope.launch(Dispatchers.IO) {
                 appDatabase.expenseDAO().insertExpense(expense)
+                // Navigate back to the calendar fragment and finish this activity
                 intent = Intent(this@AddExpense, CalenderFragment::class.java)
                 startActivity(intent)
                 finish()
             }
         }
-    }
-
-    companion object {
-        private const val IMAGE_PICK_CODE = 1001
     }
 }

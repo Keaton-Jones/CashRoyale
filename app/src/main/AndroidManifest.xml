@@ -18,14 +18,16 @@
             android:exported="false" />
         <activity
             android:name=".IncomePage"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="MissingClass" />
         <activity
             android:name=".fragments.AddExpense"
             android:exported="false" />
 
         <activity
             android:name=".Expenses"
-            android:exported="false" />
+            android:exported="false"
+            tools:ignore="MissingClass" />
 
         <activity
             android:name=".MainActivity"

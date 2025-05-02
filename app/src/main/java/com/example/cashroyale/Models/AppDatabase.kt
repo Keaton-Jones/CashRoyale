@@ -7,31 +7,53 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.cashroyale.DAO.CategoryDAO
+import com.example.cashroyale.DAO.ExpenseDAO
 import com.example.cashroyale.DAO.IncomeDAO
 import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
-import com.example.cashroyale.DAO.ExpenseDAO
 
+/**
+ * The Room database for the CashRoyale application.
+ * Defines the entities and DAOs used to interact with the database.
+ * Includes migration strategies for database schema updates.
+ */
 @Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class, Income::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
 
+    /** Provides access to the [User] data access object. */
     abstract fun userDAO(): UserDAO
+
+    /** Provides access to the [Category] data access object. */
     abstract fun categoryDAO(): CategoryDAO
+
+    /** Provides access to the [MonthlyGoals] data access object. */
     abstract fun monthlyGoalDAO(): MonthlyGoalDAO
+
+    /** Provides access to the [Expense] data access object. */
     abstract fun expenseDAO(): ExpenseDAO
+
+    /** Provides access to the [Income] data access object. */
     abstract fun incomeDAO(): IncomeDAO
 
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        /**
+         * Gets the singleton instance of the [AppDatabase].
+         * If an instance already exists, it is returned; otherwise, a new instance is created.
+         *
+         * @param context The application context.
+         * @return The singleton instance of the database.
+         */
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "cash_royale_db"
+                    "cash_royale_db" // The name of the database file
                 )
+                    // Add migrations to handle schema updates
                     .addMigrations(
                         MIGRATION_2_3,
                         MIGRATION_3_4,
@@ -46,6 +68,11 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Migration from version 2 to 3:
+         * Creates a new `Category_New` table, copies data from the old `Category` table,
+         * drops the old table, and renames the new table to `Category`.
+         */
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
@@ -61,6 +88,10 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Migration from version 3 to 4:
+         * Creates the `expenses` table.
+         */
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
@@ -77,12 +108,21 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Migration from version 4 to 5:
+         * Adds a `type` column to the `Category` table with a default value of 'expense'.
+         */
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("ALTER TABLE `Category` ADD COLUMN `type` TEXT NOT NULL DEFAULT 'expense'")
             }
         }
 
+        /**
+         * Migration from version 5 to 6:
+         * Drops the old `monthly_goals` table (if it exists) and creates a new one
+         * with a foreign key constraint to the `User` table and an index on the `userId`.
+         */
         val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("DROP TABLE IF EXISTS `monthly_goals`")
@@ -97,12 +137,17 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
                 database.execSQL("""
-                    CREATE INDEX IF NOT EXISTS `index_monthly_goals_userId` 
+                    CREATE INDEX IF NOT EXISTS `index_monthly_goals_userId`
                     ON `monthly_goals` (`userId`)
                 """.trimIndent())
             }
         }
 
+        /**
+         * Migration from version 6 to 7:
+         * Creates the `income` table with a foreign key constraint to the `User` table
+         * and an index on the `userId`.
+         */
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("""
@@ -119,12 +164,16 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
                 database.execSQL("""
-                    CREATE INDEX IF NOT EXISTS `index_income_userId` 
+                    CREATE INDEX IF NOT EXISTS `index_income_userId`
                     ON `income` (`userId`)
                 """.trimIndent())
             }
         }
 
+        /**
+         * Migration from version 7 to 8:
+         * Drops the old `income` table and creates a new one without the `userId` column.
+         */
         val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(database: SupportSQLiteDatabase) {
                 database.execSQL("DROP TABLE IF EXISTS `income`")

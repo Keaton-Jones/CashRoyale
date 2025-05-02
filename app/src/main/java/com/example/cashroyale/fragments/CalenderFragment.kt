@@ -23,15 +23,16 @@ import com.example.cashroyale.viewmodels.CalenderViewModelFactory
 class CalenderFragment : Fragment() {
     private lateinit var binding: FragmentCalenderBinding
     companion object {
+        /** Creates a new instance of this CalenderFragment. */
         fun newInstance() = CalenderFragment()
     }
 
     private val viewModel: CalenderViewModel by viewModels {
         val application = requireActivity().application
-        val database = AppDatabase.getDatabase(application) // Get your database instance
+        val database = AppDatabase.getDatabase(application) // Gets the database instance
         CalenderViewModelFactory(application, database.userDAO(), database.monthlyGoalDAO(), database.expenseDAO())
     }
-    private var goalsPromptShown = false // To prevent showing the prompt multiple times
+    private var goalsPromptShown = false // Prevents showing the goal prompt multiple times
     private lateinit var numRemainingBudgetTextView: TextView
     private lateinit var numAmountSpentTextView: TextView
     private lateinit var numMinBudgetTextView: TextView
@@ -73,16 +74,16 @@ class CalenderFragment : Fragment() {
         observeViewModel()
         // **GOAL PROMPT LOGIC**
         viewModel.loggedInUser.observe(viewLifecycleOwner) { user ->
-            Log.d("CalenderFragment", "loggedInUser observed: $user") // ADD THIS LOG
+            Log.d("CalenderFragment", "loggedInUser observed: $user") // Log user observation
             viewModel.monthlyGoalsSet.observe(viewLifecycleOwner) { goalsSet ->
-                Log.d("CalenderFragment", "monthlyGoalsSet observed: $goalsSet, goalsPromptShown: $goalsPromptShown") // ADD THIS LOG
+                Log.d("CalenderFragment", "monthlyGoalsSet observed: $goalsSet, goalsPromptShown: $goalsPromptShown") // Log goals set observation
                 user?.let {
                     if (!goalsSet && !goalsPromptShown) {
-                        Log.d("CalenderFragment", "Showing goal input dialog for user: ${it.email}") // ADD THIS LOG
+                        Log.d("CalenderFragment", "Showing goal input dialog for user: ${it.email}") // Log when showing goal dialog
                         showGoalInputDialog(it.email)
                         goalsPromptShown = true
                     } else {
-                        Log.d("CalenderFragment", "Goals already set or prompt shown.") // ADD THIS LOG
+                        Log.d("CalenderFragment", "Goals already set or prompt shown.") // Log when goal dialog is skipped
                     }
                 }
             }
@@ -91,6 +92,7 @@ class CalenderFragment : Fragment() {
         return view
     }
 
+    /** Observes LiveData from the ViewModel to update UI elements. */
     private fun observeViewModel() {
         viewModel.maxMonthlyBudget.observe(viewLifecycleOwner) { maxBudget ->
             numMaxBudgetTextView.text = if (maxBudget != null) "R ${String.format("%.2f", maxBudget)}" else "R N/A"
@@ -109,11 +111,13 @@ class CalenderFragment : Fragment() {
         }
     }
 
+    /** Shows a dialog fragment to create new categories. */
     private fun showWidgetDialogFragment() {
         val widgetDialogFragment = WidgetCategoriesFragment()
         widgetDialogFragment.show(childFragmentManager, "WidgetDialogFragment")
     }
 
+    /** Shows an AlertDialog to get the user's monthly budget goals. */
     private fun showGoalInputDialog(userId: String) {
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle("Set Your Monthly Goals")
@@ -123,7 +127,7 @@ class CalenderFragment : Fragment() {
         val minGoalEditText = inputView.findViewById<EditText>(R.id.editTextMinGoal)
 
         builder.setView(inputView)
-            .setPositiveButton("Save") { dialog, which ->
+            .setPositiveButton("Save") { _, _ ->
                 val maxGoalStr = maxGoalEditText.text.toString().trim()
                 val minGoalStr = minGoalEditText.text.toString().trim()
 
@@ -135,14 +139,14 @@ class CalenderFragment : Fragment() {
                         viewModel.saveMonthlyGoals(userId, maxGoal, minGoal)
                     } else {
                         Toast.makeText(requireContext(), "Invalid goal values.", Toast.LENGTH_LONG).show()
-                        showGoalInputDialog(userId)
+                        showGoalInputDialog(userId) // Re-show the dialog on invalid input
                     }
                 } else {
                     Toast.makeText(requireContext(), "Please enter both goals.", Toast.LENGTH_SHORT).show()
-                    showGoalInputDialog(userId)
+                    showGoalInputDialog(userId) // Re-show the dialog if fields are empty
                 }
             }
-            .setNegativeButton("Later") { dialog, which ->
+            .setNegativeButton("Later") { dialog, _ ->
                 dialog.dismiss()
                 // Handle postponing if needed
             }

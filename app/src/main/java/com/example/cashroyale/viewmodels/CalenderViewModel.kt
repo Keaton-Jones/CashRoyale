@@ -10,11 +10,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
+import androidx.lifecycle.viewModelScope
+import com.example.cashroyale.DAO.ExpenseDAO
 import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
 import com.example.cashroyale.Models.MonthlyGoals
-import androidx.lifecycle.viewModelScope
-import com.example.cashroyale.DAO.ExpenseDAO
 import com.example.cashroyale.Models.User
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -22,36 +22,51 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+/**
+ * ViewModel for the CalenderFragment, managing and providing calendar-related data.
+ * Interacts with User, MonthlyGoal, and Expense DAOs.
+ */
+class CalenderViewModel(application: Application, private val userDao: UserDAO, private val monthlyGoalsDao: MonthlyGoalDAO, private val expenseDAO: ExpenseDAO) : AndroidViewModel(application) {
 
-class CalenderViewModel(application: Application, private val userDao: UserDAO, private val monthlyGoalsDao: MonthlyGoalDAO,private val expenseDAO: ExpenseDAO) : AndroidViewModel(application) {
-
+    // LiveData for the currently logged-in user
     private val _loggedInUser = MutableLiveData<User?>()
     val loggedInUser: LiveData<User?> = _loggedInUser
+
+    // LiveData indicating if monthly goals are set
     private val _monthlyGoalsSet = MutableLiveData<Boolean>()
     val monthlyGoalsSet: LiveData<Boolean> = _monthlyGoalsSet
+
+    // LiveData for the current monthly goals
     private val _currentMonthlyGoals = MutableLiveData<MonthlyGoals?>()
     val currentMonthlyGoals: LiveData<MonthlyGoals?> = _currentMonthlyGoals
+
+    // LiveData for the maximum monthly budget
     val maxMonthlyBudget: LiveData<Double?> = _currentMonthlyGoals.map { it?.maxGoalAmount }
+
+    // LiveData for the minimum monthly budget (savings goal)
     val minMonthlyBudget: LiveData<Double?> = _currentMonthlyGoals.map { it?.minGoalAmount }
 
+    // LiveData for the selected date
     private val _selectedDate = MutableLiveData<Long>(System.currentTimeMillis())
     val selectedDate: LiveData<Long> = _selectedDate
 
+    /**
+     * LiveData for the total expenses of the current month.
+     * Retrieves all expenses and filters them for the current month.
+     */
     val totalExpenses: LiveData<Double> = _selectedDate.switchMap { date ->
         liveData {
             val startDateLong = getStartOfMonth(date)
             val endDateLong = getEndOfMonth(date)
-            val currentUserId = getCurrentUserId()
-            expenseDAO.getAllExpenses() // Get ALL expenses
+            val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+            expenseDAO.getAllExpenses()
                 .collectLatest { allExpenses ->
                     var sum = 0.0
-                    val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Assuming your date format
-
                     allExpenses.forEach { expense ->
                         try {
                             val expenseDate = dateFormatter.parse(expense.date)?.time ?: 0
-                            // Inefficient filtering in memory
-                            // WARNING: Assuming all expenses belong to the current user!
+                            // Assuming all fetched expenses belong to the current user
                             if (expenseDate >= startDateLong && expenseDate <= endDateLong) {
                                 sum += expense.amount
                             }
@@ -64,8 +79,10 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         }
     }
 
-
-    // New LiveData for remaining maximum budget
+    /**
+     * LiveData for the remaining maximum budget.
+     * Combines maximum budget and total expenses.
+     */
     val remainingMaxBudget: LiveData<Double?> = MediatorLiveData<Double?>().apply {
         var maxBudget: Double? = null
         var expenses: Double? = null
@@ -93,6 +110,9 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         getLoggedInUserAndCheckGoals()
     }
 
+    /**
+     * Retrieves the logged-in user and checks if goals are set.
+     */
     private fun getLoggedInUserAndCheckGoals() {
         Log.d("CalenderViewModel", "getLoggedInUserAndCheckGoals() called")
         viewModelScope.launch {
@@ -118,6 +138,9 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         }
     }
 
+    /**
+     * Checks if goals are set for a user.
+     */
     private fun checkIfGoalsAreSet(userId: String) {
         Log.d("CalenderViewModel", "checkIfGoalsAreSet() called for userId: $userId")
         viewModelScope.launch {
@@ -130,6 +153,9 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         }
     }
 
+    /**
+     * Loads the current monthly goals for a user.
+     */
     private fun loadCurrentMonthlyGoals(userId: String) {
         Log.d("CalenderViewModel", "loadCurrentMonthlyGoals() called for userId: $userId")
         viewModelScope.launch {
@@ -142,6 +168,9 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         }
     }
 
+    /**
+     * Saves monthly goals for a user.
+     */
     fun saveMonthlyGoals(userId: String, maxGoal: Double, minGoal: Double) {
         viewModelScope.launch {
             val newMonthlyGoal = MonthlyGoals(
@@ -156,6 +185,11 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         }
     }
 
+    /**
+     * Gets the current user ID from SharedPreferences.
+     *
+     * @return The user ID or an empty string if not found.
+     */
     private fun getCurrentUserId(): String {
         val sharedPreferences = getApplication<Application>().getSharedPreferences(
             "user_prefs",
@@ -164,6 +198,10 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         return sharedPreferences.getString("loggedInEmail", "") ?: ""
     }
 
+    /**
+     * Gets the timestamp of the start of the month for a given date.
+     * @return The timestamp of the first day of the month at 00:00:00.
+     */
     private fun getStartOfMonth(date: Long): Long {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = date
@@ -175,6 +213,10 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         return calendar.timeInMillis
     }
 
+    /**
+     * Gets the timestamp of the end of the month for a given date.
+     * @return The timestamp of the last day of the month at 23:59:59.999.
+     */
     private fun getEndOfMonth(date: Long): Long {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = date
