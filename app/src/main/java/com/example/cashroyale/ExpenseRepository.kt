@@ -1,0 +1,23 @@
+package com.example.cashroyale
+
+import kotlinx.coroutines.flow.Flow
+
+class ExpenseRepository(private val expenseDAO: ExpenseDAO) {
+    val allExpenses: Flow<List<Expense>> = expenseDAO.getAllExpenses()
+
+    suspend fun insert(expense: Expense): Long {
+        return expenseDAO.insertExpense(expense)
+    }
+
+    suspend fun update(expense: Expense) {
+        expenseDAO.updateExpense(expense)
+    }
+
+    suspend fun delete(expense: Expense) {
+        expenseDAO.deleteExpense(expense)
+    }
+
+    suspend fun getById(id: Int): Expense? {
+        return expenseDAO.getExpenseById(id)
+    }
+}

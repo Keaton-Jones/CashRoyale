@@ -6,13 +6,14 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.example.cashroyale.Expense
 import com.example.cashroyale.Models.Category
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CategoryDAO {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(category: Category): Long
+    fun insert(category: Category): Long
 
     @Update
     suspend fun update(category: Category): Int
@@ -29,7 +30,10 @@ interface CategoryDAO {
     @Query("SELECT * FROM category WHERE type = :type ORDER BY name ASC")
     fun getCategoriesByType(type: String): Flow<List<Category>>
 
-
     @Query("SELECT EXISTS(SELECT 1 FROM category WHERE name = :name)")
-    suspend fun exists(name: String): Boolean
+    fun exists(name: String): Boolean
+
+    @Query("SELECT * FROM expenses WHERE category = :category ORDER BY date DESC")
+    fun getExpensesByCategory(category: String): Flow<List<Expense>>
+
 }
