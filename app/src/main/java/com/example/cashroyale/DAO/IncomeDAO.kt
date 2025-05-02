@@ -5,7 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.example.cashroyale.Income
+import com.example.cashroyale.Models.Income
 import kotlinx.coroutines.flow.Flow
 
 @Dao

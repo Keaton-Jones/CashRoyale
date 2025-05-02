@@ -11,13 +11,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
-import com.example.cashroyale.Expenses
-import com.example.cashroyale.IncomePage
 import com.example.cashroyale.Models.AppDatabase
-import com.example.cashroyale.Models.User
 import com.example.cashroyale.viewmodels.CalenderViewModel
 import com.example.cashroyale.R
+import com.example.cashroyale.viewmodels.ViewExpenses
 import com.example.cashroyale.databinding.FragmentCalenderBinding
 import com.example.cashroyale.viewmodels.CalenderViewModelFactory
 
@@ -30,9 +29,13 @@ class CalenderFragment : Fragment() {
     private val viewModel: CalenderViewModel by viewModels {
         val application = requireActivity().application
         val database = AppDatabase.getDatabase(application) // Get your database instance
-        CalenderViewModelFactory(application, database.userDAO(), database.monthlyGoalDAO())
+        CalenderViewModelFactory(application, database.userDAO(), database.monthlyGoalDAO(), database.expenseDAO())
     }
     private var goalsPromptShown = false // To prevent showing the prompt multiple times
+    private lateinit var numRemainingBudgetTextView: TextView
+    private lateinit var numAmountSpentTextView: TextView
+    private lateinit var numMinBudgetTextView: TextView
+    private lateinit var numMaxBudgetTextView: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,24 +43,34 @@ class CalenderFragment : Fragment() {
     ): View {
         val view = inflater.inflate(R.layout.fragment_calender, container, false)
         val createCategoryImageButton: ImageButton = view.findViewById(R.id.createCategoryImageButton)
+        numRemainingBudgetTextView = view.findViewById(R.id.numRemainingBudgetTextView)
+        numAmountSpentTextView = view.findViewById(R.id.numAmountSpentTextView)
+        numMinBudgetTextView = view.findViewById(R.id.numMinBudgetTextView)
+        numMaxBudgetTextView = view.findViewById(R.id.numMaxBudgetTextView)
 
         val expenseButton: View = view.findViewById(R.id.btnExpenses)
         expenseButton.setOnClickListener {
-            val intent = Intent(requireContext(), Expenses::class.java)
+            val intent = Intent(requireContext(), AddExpense::class.java)
             startActivity(intent)
         }
 
         val incomeButton: View = view.findViewById(R.id.btnIncome)
         incomeButton.setOnClickListener {
-            val intent = Intent(requireContext(), IncomePage::class.java)
+            val intent = Intent(requireContext(), AddIncome::class.java)
             startActivity(intent)
         }
-
+        val btnViewExpenses: View = view.findViewById(R.id.btnViewExpenses)
+        btnViewExpenses.setOnClickListener {
+            val intent = Intent(requireContext(), ViewExpenses::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(intent)
+        }
 
         createCategoryImageButton.setOnClickListener {
             showWidgetDialogFragment()
         }
 
+        observeViewModel()
         // **GOAL PROMPT LOGIC**
         viewModel.loggedInUser.observe(viewLifecycleOwner) { user ->
             Log.d("CalenderFragment", "loggedInUser observed: $user") // ADD THIS LOG
@@ -76,6 +89,24 @@ class CalenderFragment : Fragment() {
         }
 
         return view
+    }
+
+    private fun observeViewModel() {
+        viewModel.maxMonthlyBudget.observe(viewLifecycleOwner) { maxBudget ->
+            numMaxBudgetTextView.text = if (maxBudget != null) "R ${String.format("%.2f", maxBudget)}" else "R N/A"
+        }
+
+        viewModel.minMonthlyBudget.observe(viewLifecycleOwner) { minBudget ->
+            numMinBudgetTextView.text = if (minBudget != null) "R ${String.format("%.2f", minBudget)}" else "R N/A"
+        }
+
+        viewModel.totalExpenses.observe(viewLifecycleOwner) { totalSpent ->
+            numAmountSpentTextView.text = if (totalSpent != null) "R ${String.format("%.2f", totalSpent)}" else "R 0.00"
+        }
+
+        viewModel.remainingMaxBudget.observe(viewLifecycleOwner) { remainingBudget ->
+            numRemainingBudgetTextView.text = if (remainingBudget != null) "R ${String.format("%.2f", remainingBudget)}" else "R N/A"
+        }
     }
 
     private fun showWidgetDialogFragment() {

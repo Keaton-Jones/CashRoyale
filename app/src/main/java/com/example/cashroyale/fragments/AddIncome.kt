@@ -1,4 +1,4 @@
-package com.example.cashroyale
+package com.example.cashroyale.fragments
 
 import android.app.Activity
 import android.app.DatePickerDialog
@@ -15,6 +15,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.cashroyale.Models.AppDatabase
+import com.example.cashroyale.Models.Income
+import com.example.cashroyale.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -64,7 +66,7 @@ class AddIncome : AppCompatActivity() {
 
     private fun setupCategorySpinner() {
         lifecycleScope.launch {
-            appDatabase.categoryDAO().getCategoriesByType("income").collect { categories ->
+            appDatabase.categoryDAO().getCategoriesByType("Income").collect { categories ->
                 categoryNames = categories.map { it.name }
 
                 val adapter = ArrayAdapter(

@@ -31,7 +31,6 @@ class WidgetCategoriesFragment : DialogFragment() {
     private var categoryNameEditText: EditText? = null
     private var colourSpinner: Spinner? = null
     private var transactionSpinner: Spinner? = null
-    private var transactionSpinner: Spinner? = null
     private var manageCategoriesButton: Button? = null
     private lateinit var appDatabase: AppDatabase
     private lateinit var categoryDao: CategoryDAO

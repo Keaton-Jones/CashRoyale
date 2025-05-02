@@ -1,4 +1,4 @@
-package com.example.cashroyale
+package com.example.cashroyale.Models
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

@@ -1,6 +1,7 @@
-package com.example.cashroyale
+package com.example.cashroyale.DAO
 
 import androidx.room.*
+import com.example.cashroyale.Models.Expense
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -27,5 +28,6 @@ interface ExpenseDAO {
     // added to be able to pop the cycler view cause initial query was giving an error on fisrt pull
     @Query("SELECT * FROM expenses ORDER BY date DESC")
     suspend fun getAllExpensesOnce(): List<Expense>
+
 }
 

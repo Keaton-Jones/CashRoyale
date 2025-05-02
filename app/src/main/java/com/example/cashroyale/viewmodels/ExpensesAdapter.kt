@@ -1,4 +1,4 @@
-package com.example.cashroyale
+package com.example.cashroyale.viewmodels
 
 import android.view.LayoutInflater
 import android.view.View
@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.cashroyale.Models.Expense
+import com.example.cashroyale.R
 import com.squareup.picasso.Picasso
 
 class ExpensesAdapter(private var expenses: List<Expense>) : RecyclerView.Adapter<ExpensesAdapter.ExpenseViewHolder>() {
@@ -32,7 +34,6 @@ class ExpensesAdapter(private var expenses: List<Expense>) : RecyclerView.Adapte
         holder.amount.text = "Amount: $${expense.amount}"
         holder.date.text = "Date: ${expense.date}"
         holder.category.text = "Category: ${expense.category}"
-
         // If there is an image, display it; otherwise, hide the image view
         if (!expense.imageUri.isNullOrEmpty()) {
             holder.imageView.visibility = View.VISIBLE

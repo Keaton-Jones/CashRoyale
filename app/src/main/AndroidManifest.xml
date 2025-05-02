@@ -14,13 +14,13 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".AddIncome"
+            android:name=".fragments.AddIncome"
             android:exported="false" />
         <activity
             android:name=".IncomePage"
             android:exported="false" />
         <activity
-            android:name=".AddExpense"
+            android:name=".fragments.AddExpense"
             android:exported="false" />
 
         <activity
@@ -60,7 +60,7 @@
         </activity>
 
         <activity
-            android:name=".ViewExpenses"
+            android:name=".viewmodels.ViewExpenses"
             android:exported="false"
             android:launchMode="singleTop" />
     </application>

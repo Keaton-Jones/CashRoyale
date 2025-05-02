@@ -1,5 +1,7 @@
-package com.example.cashroyale
+package com.example.cashroyale.repositories
 
+import com.example.cashroyale.DAO.ExpenseDAO
+import com.example.cashroyale.Models.Expense
 import kotlinx.coroutines.flow.Flow
 
 class ExpenseRepository(private val expenseDAO: ExpenseDAO) {

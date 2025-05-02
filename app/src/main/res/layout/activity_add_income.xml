@@ -5,7 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".AddIncome">
+    android:background="@color/rokuPurple"
+    tools:context=".fragments.AddIncome">
     <Button
         android:id="@+id/btnSave"
         android:layout_width="240dp"
@@ -16,6 +17,7 @@
         app:layout_constraintHorizontal_bias="0.157"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:backgroundTint="@color/black"
         app:layout_constraintVertical_bias="0.857" />
 
     <Spinner
@@ -40,6 +42,7 @@
         app:layout_constraintHorizontal_bias="0.113"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:textColor="@color/black"
         app:layout_constraintVertical_bias="0.076" />
 
     <EditText
@@ -55,6 +58,8 @@
         app:layout_constraintHorizontal_bias="0.084"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:textColorHint="@color/black"
+        android:backgroundTint="@color/black"
         app:layout_constraintVertical_bias="0.179" />
 
     <EditText
@@ -70,6 +75,8 @@
         app:layout_constraintHorizontal_bias="0.079"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:textColorHint="@color/black"
+        android:backgroundTint="@color/black"
         app:layout_constraintVertical_bias="0.262" />
 
     <EditText
@@ -87,6 +94,8 @@
         app:layout_constraintHorizontal_bias="0.084"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:textColorHint="@color/black"
+        android:backgroundTint="@color/black"
         app:layout_constraintVertical_bias="0.349" />
 
     <Spinner
@@ -122,5 +131,6 @@
         app:layout_constraintHorizontal_bias="0.057"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:backgroundTint="@color/black"
         app:layout_constraintVertical_bias="0.742" />
 </androidx.constraintlayout.widget.ConstraintLayout>

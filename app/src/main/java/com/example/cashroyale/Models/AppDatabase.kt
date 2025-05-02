@@ -10,9 +10,7 @@ import com.example.cashroyale.DAO.CategoryDAO
 import com.example.cashroyale.DAO.IncomeDAO
 import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
-import com.example.cashroyale.Expense
-import com.example.cashroyale.ExpenseDAO
-import com.example.cashroyale.Income
+import com.example.cashroyale.DAO.ExpenseDAO
 
 @Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class, Income::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
