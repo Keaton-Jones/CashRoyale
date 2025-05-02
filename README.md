@@ -50,6 +50,7 @@ Users will have the option to generate a list of expenses over a selectable date
 range.
 
 Required Software 
+
 To successfully run the app, you’ll need to have several key tools installed on your 
 development machine. These tools are essential for building, running, and testing 
 Android applications. 
