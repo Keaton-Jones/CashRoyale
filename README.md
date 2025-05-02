@@ -15,9 +15,13 @@ Relevance -
 Budgeting can often be viewed as a stressful and tedious task but it doesn’t have to be 
 this way especially for such an important aspect. CashRoyale aims to rid finanacial 
 planning of these negative stigmas by: 
+
 ➢ Making budgeting engaging and interactive through gamification 
+
 ➢ Providing clear visuals of spending habits 
+
 ➢ Helping users build healthier financial habits 
+
 ➢ Offering offline functionality so users can track finances anywhere 
  
 App Navigation 
