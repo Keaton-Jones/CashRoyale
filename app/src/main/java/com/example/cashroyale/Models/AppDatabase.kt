@@ -10,11 +10,11 @@ import com.example.cashroyale.DAO.CategoryDAO
 import com.example.cashroyale.DAO.IncomeDAO
 import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
-import com.example.cashroyale.ExpenseDAO
 import com.example.cashroyale.Expense
+import com.example.cashroyale.ExpenseDAO
 import com.example.cashroyale.Income
 
-@Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class, Income::class], version = 7)
+@Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class, Income::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDAO(): UserDAO
@@ -39,7 +39,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_3_4,
                         MIGRATION_4_5,
                         MIGRATION_5_6,
-                        MIGRATION_6_7
+                        MIGRATION_6_7,
+                        MIGRATION_7_8
                     )
                     .build()
                 INSTANCE = instance
@@ -122,6 +123,23 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL("""
                     CREATE INDEX IF NOT EXISTS `index_income_userId` 
                     ON `income` (`userId`)
+                """.trimIndent())
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("DROP TABLE IF EXISTS `income`")
+                database.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `income` (
+                        `incomeId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `description` TEXT NOT NULL,
+                        `amount` REAL NOT NULL,
+                        `date` TEXT NOT NULL,
+                        `paymentMethod` TEXT NOT NULL,
+                        `category` TEXT NOT NULL,
+                        `imageUri` TEXT
+                    )
                 """.trimIndent())
             }
         }

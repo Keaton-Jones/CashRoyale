@@ -6,14 +6,18 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.widget.*
+import android.widget.ArrayAdapter
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.Spinner
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.cashroyale.Models.AppDatabase
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.*
+import java.util.Calendar
 
 class AddExpense : AppCompatActivity() {
     private lateinit var Description: EditText
@@ -58,11 +62,10 @@ class AddExpense : AppCompatActivity() {
     }
 
     private fun setupCategorySpinner() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val categories = appDatabase.categoryDAO().getAllCategories().first()
-            categoryNames = categories.map { it.name }
+        lifecycleScope.launch {
+            appDatabase.categoryDAO().getCategoriesByType("expense").collect { categories ->
+                categoryNames = categories.map { it.name }
 
-            launch(Dispatchers.Main) {
                 val adapter = ArrayAdapter(
                     this@AddExpense,
                     android.R.layout.simple_spinner_item,
