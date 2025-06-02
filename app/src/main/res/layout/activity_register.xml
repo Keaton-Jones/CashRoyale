@@ -66,12 +66,24 @@
     <Button
         android:id="@+id/confirmRegButton"
         android:layout_width="144dp"
-        android:layout_height="49dp"
+        android:layout_height="50dp"
         android:layout_marginTop="36dp"
         android:backgroundTint="@color/black"
-        android:textColor="@color/white"
         android:text="Register"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/regConfirmPasswordEditText" />
+
+    <Button
+        android:id="@+id/returnLoginButton"
+        android:layout_width="144dp"
+        android:layout_height="60dp"
+        android:backgroundTint="@color/black"
+        android:layout_marginTop="10dp"
+        android:text="Return To Login"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/confirmRegButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

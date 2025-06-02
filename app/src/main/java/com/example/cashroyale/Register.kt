@@ -1,20 +1,19 @@
 package com.example.cashroyale
 
+import android.content.ContentValues.TAG
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
-import com.example.cashroyale.DAO.UserDAO
-import com.example.cashroyale.Models.AppDatabase
-import com.example.cashroyale.Models.User
-import com.example.cashroyale.databinding.ActivityRegisterBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 
 /**
  * Activity for user registration. Allows new users to create an account.
@@ -22,122 +21,70 @@ import kotlinx.coroutines.withContext
  */
 class Register : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRegisterBinding
-    private lateinit var userDAO: UserDAO
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        binding = ActivityRegisterBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_register)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Initialize the User Data Access Object
-        userDAO = AppDatabase.getDatabase(this).userDAO()
+        auth = Firebase.auth
 
-        // Set click listener for the registration confirmation button
-        binding.confirmRegButton.setOnClickListener() {
+        val returnToLoginButton = findViewById<Button>(R.id.returnLoginButton)
+        val register = findViewById<Button>(R.id.confirmRegButton)
+        val emailEditText = findViewById<EditText>(R.id.regUsernameEditText)
+        val passwordEditText = findViewById<EditText>(R.id.regPasswordEditText)
+        val confirmPasswordEditText = findViewById<EditText>(R.id.regConfirmPasswordEditText)
 
-            val email = binding.regUsernameEditText.text.toString()
-            val password = binding.regPasswordEditText.text.toString()
-            val confirmPassword = binding.regConfirmPasswordEditText.text.toString()
-            val specialCharacters =
-                listOf('@', '#', '$', '%', '&', '*', '.', '!', '?', '-', '_', '+', '=')
+        returnToLoginButton.setOnClickListener {
+            val intent = Intent(this, Login::class.java)
+            startActivity(intent)
+        }
 
-            // Check if all fields are filled
-            if (email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty()) {
-                // Validate email format
-                if (email.contains("@") && email.contains(".")) {
-                    // Check password length
-                    if (password.length < 8) {
-                        Toast.makeText(
-                            this@Register,
-                            "Password must be at least 8 characters.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } else {
-                        // Check for at least one special character
-                        if (password.any { it in specialCharacters }) {
-                            // Check for both uppercase and lowercase letters
-                            if (password.contains(Regex("[A-Z]")) && password.contains(Regex("[a-z]"))) {
-                                // Check for at least one digit
-                                if (password.contains(Regex("[0-9]"))) {
-                                    // Check if passwords match
-                                    if (password == confirmPassword) {
-                                        lifecycleScope.launch(Dispatchers.IO) {
-                                            // Check if the email already exists
-                                            val checkUser = userDAO.getUserByEmail(email)
-                                            if (checkUser == null) {
-                                                // Insert the new user into the database
-                                                userDAO.insertUser(User(email, password))
-                                                withContext(Dispatchers.Main) {
-                                                    Toast.makeText(
-                                                        this@Register,
-                                                        "Registration successful!",
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
-                                                    // Navigate to the login screen
-                                                    intent =
-                                                        Intent(this@Register, Login::class.java)
-                                                    startActivity(intent)
-                                                    finish() // Prevent going back to registration
-                                                }
-                                            } else {
-                                                Toast.makeText(
-                                                    this@Register,
-                                                    "Email already exists.",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
+        register.setOnClickListener {
+            Log.d(TAG,"reg button clicked")
+            val email = emailEditText.text.toString()
+            val password = passwordEditText.text.toString()
+            val confirmPassword = confirmPasswordEditText.text.toString()
 
-                                    } else {
-                                        Toast.makeText(
-                                            this@Register,
-                                            "Passwords do not match.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        this@Register,
-                                        "Password must contain at least one number.",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            } else {
-                                Toast.makeText(
-                                    this@Register,
-                                    "Password must contain both uppercase and lowercase letters.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } else {
-                            Toast.makeText(
-                                this@Register,
-                                "Password must contain at least one special character.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } else {
-                    Toast.makeText(
-                        this@Register,
-                        "Please enter a valid email.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            } else {
+            if (password.isEmpty() && email.isEmpty() && confirmPassword.isEmpty()) {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (password.length < 8) {
                 Toast.makeText(
-                    this@Register,
-                    "Please enter all fields.",
+                    this,
+                    "Password must be at least 8 characters long",
                     Toast.LENGTH_SHORT
                 ).show()
+                return@setOnClickListener
             }
+            register.isEnabled = false
+            Log.d(TAG,"before create")
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this) { task ->
+                    Log.d(TAG, "before if")
+                    if (task.isSuccessful) {
+                        Log.d(TAG, "after if")
+                        // Registration successful
+                        Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this, Login::class.java))
+                        finish()
+                    } else {
+                        Log.d(TAG, "after else")
+                        // Registration failed
+                        Toast.makeText(
+                            this, "Registration failed: ${task.exception?.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        register.isEnabled = true
+                    }
+                }
         }
     }
 }
