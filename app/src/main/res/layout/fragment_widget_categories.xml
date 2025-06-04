@@ -25,13 +25,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Select Color:"
+        android:text="Spending Limit:"
         android:textSize="16sp" />
 
-    <Spinner
-        android:id="@+id/colourSpinner"
+    <EditText
+        android:id="@+id/limitEditText"
         android:layout_width="match_parent"
-        android:layout_height="48dp" />
+        android:layout_height="48dp"
+        android:hint="Enter limit"
+        android:inputType="numberDecimal"
+        android:autofillHints="limit" />
 
     <Spinner
         android:id="@+id/transactionSpinner"

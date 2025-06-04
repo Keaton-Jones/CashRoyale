@@ -1,19 +1,29 @@
 package com.example.cashroyale.Models
 
 import android.os.Parcelable
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+// REMOVE ALL ROOM IMPORTS
+// import androidx.room.Entity
+// import androidx.room.PrimaryKey
 import kotlinx.parcelize.Parcelize
 
 /**
- * Represents a category for expenses or income.
- * Implements [Parcelable] to allow passing instances between components.
+ * Represents a category for expenses or income, designed for Firebase Firestore.
+ * Implements [Parcelable] to allow passing instances between components (e.g., to EditCategoryFragment).
  */
 @Parcelize
-@Entity(tableName = "Category") // Specifies the table name in the database
 data class Category(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0, // Unique identifier for the category, auto-generated
-    val name: String, // The name of the category (e.g., "Food", "Salary")
-    val color: String, // The color associated with the category (e.g., "#FF0000" for Red)
-    val type: String // The type of the category ("income" or "expense")
-): Parcelable
+    // Firestore document ID.
+    var id: String = "",
+    // The Firebase Authentication user ID that this category belongs to.
+    val userId: String = "",
+    // The name of the category (e.g., "Food", "Salary")
+    val name: String = "",
+    // The limit associated with the category (e.g., budget for "Food"). Use 0.0 as default.
+    val limit: Double = 0.0,
+    // The type of the category ("income" or "expense")
+    val type: String = ""
+) : Parcelable {
+    // No-argument constructor required for Firebase Firestore automatic deserialization.
+    // It should initialize all properties with their default values.
+    constructor() : this("", "", "", 0.0, "")
+}

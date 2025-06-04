@@ -26,7 +26,7 @@ class CategoryAdapter(
      */
     class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val nameTextView: TextView = itemView.findViewById(R.id.categoryNameTextView)
-        val colorView: View = itemView.findViewById(R.id.categoryColorView)
+        val limitView: TextView = itemView.findViewById(R.id.categoryLimitTextView)
         val editButton: Button = itemView.findViewById(R.id.editButton)
         val deleteButton: Button = itemView.findViewById(R.id.deleteButton)
     }
@@ -49,12 +49,7 @@ class CategoryAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val currentCategory = categories[position]
         holder.nameTextView.text = currentCategory.name
-        try {
-            holder.colorView.setBackgroundColor(Color.parseColor(currentCategory.color))
-        } catch (e: IllegalArgumentException) {
-            // Handle the case where the color string is invalid
-            holder.colorView.setBackgroundColor(Color.GRAY)
-        }
+        holder.limitView.text = "Limit: R${currentCategory.limit}"
 
         holder.editButton.setOnClickListener {
             onEditClicked(currentCategory)

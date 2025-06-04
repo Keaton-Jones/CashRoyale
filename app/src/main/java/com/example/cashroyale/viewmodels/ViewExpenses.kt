@@ -55,7 +55,7 @@ class ViewExpenses : AppCompatActivity() {
         }
 
         // Load categories into the Spinner
-        loadCategoriesIntoSpinner()
+       // loadCategoriesIntoSpinner()
 
         // Set up category selection listener
         categorySpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -64,7 +64,7 @@ class ViewExpenses : AppCompatActivity() {
                 if (selectedCategory == "All") {
                     loadExpenses() // Show all expenses if "All" is selected
                 } else {
-                    loadExpensesByCategory(selectedCategory) // Load expenses for selected category
+                  //  loadExpensesByCategory(selectedCategory) // Load expenses for selected category
                 }
             }
 
@@ -74,24 +74,24 @@ class ViewExpenses : AppCompatActivity() {
         }
     }
 
-    private fun loadCategoriesIntoSpinner() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val categoriesFlow = appDatabase.categoryDAO().getAllCategories()
-            val categories = categoriesFlow.first()
-            val categoryNames = mutableListOf("All") // Add "All" as the first item
-            categoryNames.addAll(categories.map { it.name })
-
-            launch(Dispatchers.Main) {
-                val adapter = ArrayAdapter(
-                    this@ViewExpenses,
-                    android.R.layout.simple_spinner_item,
-                    categoryNames
-                )
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                categorySpinner.adapter = adapter // Set the adapter to the Spinner
-            }
-        }
-    }
+//    private fun loadCategoriesIntoSpinner() {
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val categoriesFlow = appDatabase.categoryDAO().getAllCategories()
+//            val categories = categoriesFlow.first()
+//            val categoryNames = mutableListOf("All") // Add "All" as the first item
+//            categoryNames.addAll(categories.map { it.name })
+//
+//            launch(Dispatchers.Main) {
+//                val adapter = ArrayAdapter(
+//                    this@ViewExpenses,
+//                    android.R.layout.simple_spinner_item,
+//                    categoryNames
+//                )
+//                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+//                categorySpinner.adapter = adapter // Set the adapter to the Spinner
+//            }
+//        }
+//    }
 
     // Show a date picker dialog when the user clicks on the date field
     private fun showDatePicker() {
@@ -126,13 +126,13 @@ class ViewExpenses : AppCompatActivity() {
     }
 
     // Load expenses based on selected category
-    private fun loadExpensesByCategory(category: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val filteredExpenses = appDatabase.categoryDAO().getExpensesByCategory(category).first()
-
-            launch(Dispatchers.Main) {
-                expensesAdapter.updateExpenses(filteredExpenses)
-            }
-        }
-    }
+//    private fun loadExpensesByCategory(category: String) {
+//        lifecycleScope.launch(Dispatchers.IO) {
+//            val filteredExpenses = appDatabase.categoryDAO().getExpensesByCategory(category).first()
+//
+//            launch(Dispatchers.Main) {
+//                expensesAdapter.updateExpenses(filteredExpenses)
+//            }
+//        }
+//    }
 }

@@ -3,6 +3,8 @@ package com.example.cashroyale
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -11,27 +13,35 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.cashroyale.DAO.UserDAO
 import com.example.cashroyale.Models.AppDatabase
+import com.example.cashroyale.Services.AuthService
 import com.example.cashroyale.databinding.ActivityLoginBinding
+import com.google.firebase.Firebase
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.Continuation
 
 /**
  * Activity for user login. Allows existing users to log in and provides a link to the registration screen.
  */
 class Login : AppCompatActivity() {
 
-    private lateinit var binding: ActivityLoginBinding
-    private lateinit var userDAO: UserDAO
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
+    private val authService = AuthService.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
         enableEdgeToEdge()
-        setContentView(binding.root)
+        setContentView(R.layout.activity_login)
 
-        // Initialize the User Data Access Object
-        userDAO = AppDatabase.getDatabase(this).userDAO()
+        auth = Firebase.auth
+        db = Firebase.firestore
 
         // Handle edge-to-edge screen display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -40,65 +50,43 @@ class Login : AppCompatActivity() {
             insets
         }
 
-        // Set click listener for the login button
-        binding.loginButton.setOnClickListener() {
-            val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
+        val login = findViewById<Button>(R.id.loginButton)
+        val register = findViewById<Button>(R.id.registerButton)
+        val emailEditText = findViewById<EditText>(R.id.emailEditText)
+        val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
 
-            // Check if both email and password fields are filled
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val checkUser = userDAO.getUserByEmail(email)
+        login.setOnClickListener{
+            val email = emailEditText.text.toString().trim()
+            val password = passwordEditText.text.toString().trim()
 
-                    withContext(Dispatchers.Main) {
-                        if (checkUser != null) {
-                            // Verify the entered password against the stored password
-                            if (checkUser.password == password) {
-                                Toast.makeText(
-                                    this@Login,
-                                    "Login successful!",
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
-                                // **SAVE LOGGED-IN EMAIL TO SHARED PREFERENCES**
-                                val sharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                                val editor = sharedPreferences.edit()
-                                editor.putString("loggedInEmail", checkUser.email)
-                                editor.apply() // Asynchronously saves the changes
+            login.isEnabled = false
 
-                                // Navigate to the main activity
-                                intent = Intent(this@Login, MainActivity::class.java)
-                                startActivity(intent)
-                                finish() // Prevent the user from going back to the login screen
-                            } else {
-                                Toast.makeText(
-                                    this@Login,
-                                    "Incorrect password.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        } else {
-                            Toast.makeText(
-                                this@Login,
-                                "Email not found.",
-                                Toast.LENGTH_SHORT
-                            )
-                                .show()
-                        }
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val result = authService.signInWithEmailAndPassword(email, password)
+                    result.onSuccess{
+                        Toast.makeText(this@Login, "Login successful!", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@Login, MainActivity::class.java))
+                        finish()
+                    }.onFailure { exception ->
+                        Toast.makeText(this@Login, "Login failed: ${exception.message}", Toast.LENGTH_SHORT).show()
+                        login.isEnabled = true
                     }
-                }
-            } else {
-                Toast.makeText(
-                    this@Login,
-                    "Please enter both email and password.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                } catch (e: Exception) {
+                        Toast.makeText(this@Login, "Login failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                        login.isEnabled = true
+                    }
+
             }
         }
 
         // Set click listener for the register button to navigate to the registration screen
-        binding.registerButton.setOnClickListener(){
+           register.setOnClickListener(){
             intent = Intent(this, Register::class.java)
             startActivity(intent)
             finish() // Prevent the user from going back to the login screen on back press

@@ -31,5 +31,19 @@
         android:layout_height="60dp"
         android:inputType="numberDecimal"
         android:hint="e.g., 500.00" />
+    <Button
+        android:id="@+id/btnSetGoals"
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:layout_marginTop="16dp"
+        android:text="Set Goals" />
+
+    <Button
+        android:id="@+id/btnSetLater"
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:layout_marginTop="16dp"
+        android:text="Set Later" />
+
 
 </LinearLayout>
