@@ -90,4 +90,11 @@ dependencies {
     testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation ("io.mockk:mockk:1.13.10")
 
+    // For OkHttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // For Kotlin Coroutines (if you're using them, highly recommended for network ops)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0") // If on Android
+
 }

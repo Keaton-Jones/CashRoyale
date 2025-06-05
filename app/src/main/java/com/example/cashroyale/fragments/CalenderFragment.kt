@@ -2,6 +2,7 @@ package com.example.cashroyale.fragments
 
 import android.content.ContentValues.TAG
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,11 +11,13 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope // Used for coroutines within the Fragment's lifecycle
 import com.example.cashroyale.R
 import com.example.cashroyale.Services.AuthService
+import com.example.cashroyale.Services.EmailService
 import com.example.cashroyale.Services.FireStore // Your custom FireStore service
 // No need to import MonthlyGoals here for the dialog, ViewModel handles data class directly
 // import com.example.cashroyale.Models.MonthlyGoals
@@ -25,12 +28,14 @@ import com.example.cashroyale.viewmodels.ViewExpenses // Ensure this path is cor
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.launch
 
 class CalenderFragment : Fragment() {
     private lateinit var binding: FragmentCalenderBinding
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private val emailService = EmailService()
 
     // Declare fireStoreService as lateinit var
     private lateinit var fireStoreService: FireStore
@@ -50,6 +55,7 @@ class CalenderFragment : Fragment() {
 
     private var goalsPromptShown = false
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -68,10 +74,28 @@ class CalenderFragment : Fragment() {
             startActivity(intent)
         }
 
-        binding.btnViewExpenses.setOnClickListener {
-            val intent = Intent(requireContext(), ViewExpenses::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            startActivity(intent)
+        binding.btnSendReport.setOnClickListener {
+            var report = "Your monthly budget is R ${String.format("%.2f", viewModel.maxMonthlyBudget.value)}" + "\n" +
+                    "You spent a total of R ${String.format("%.2f", viewModel.totalExpenses.value)}" + " this month\n" +
+                    "Your remaining budget is R ${String.format("%.2f", viewModel.remainingMaxBudget.value)}" + "\n"
+
+            val max = viewModel.maxMonthlyBudget.value
+            val spent = viewModel.totalExpenses.value
+            val remaining = viewModel.remainingMaxBudget.value
+
+            if (max != null) {
+                if (max - spent!! > remaining!!){
+                    report += "You have not reached your minimum monthly goal of R ${String.format("%.2f", viewModel.minMonthlyBudget.value)}"
+                }else{
+                    report += "You have reached your minimum monthly goal of R ${String.format("%.2f", viewModel.minMonthlyBudget.value)}"
+                }
+            }
+            emailService.sendSpendBreakdownEmail(requireContext(), auth.currentUser!!.email!!, report)
+            //TO DO
+//             var catList = setOf(fireStoreService.getAllCategoriesFlow(auth.currentUser!!.uid))
+//            catList.forEach { cat ->
+//                    report += "You have spent R ${String.format("%.2f", cat.totalSpent)} on ${cat.name}"
+//            }
         }
 
         binding.createCategoryImageButton.setOnClickListener {
