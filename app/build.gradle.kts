@@ -77,10 +77,13 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3") // Use the latest, 1.7.3
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // Use the latest, 1.7.3
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
+
     // Palette
     implementation("androidx.palette:palette:1.0.0")
     implementation(libs.room.common.jvm)
     implementation(libs.room.runtime.android)
+
 
     // Testing dependencies
     testImplementation(libs.junit)
