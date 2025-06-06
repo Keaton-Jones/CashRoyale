@@ -49,7 +49,7 @@ class CategoryAdapter(
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
         val currentCategory = categories[position]
         holder.nameTextView.text = currentCategory.name
-        holder.limitView.text = "Limit: R${currentCategory.limit}"
+        holder.limitView.text = "Limit: R${String.format("%.2f",currentCategory.limit)}"
 
         holder.editButton.setOnClickListener {
             onEditClicked(currentCategory)

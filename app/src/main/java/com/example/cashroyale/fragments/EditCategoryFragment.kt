@@ -74,7 +74,6 @@ class EditCategoryFragment : DialogFragment() {
 
         // Initialize UI elements
         editCategoryNameEditText = view.findViewById(R.id.editCategoryNameEditText)
-        editTypeSpinner = view.findViewById(R.id.editTypeSpinner)
         limitEditText = view.findViewById(R.id.editLimitEditText)
         val cancelButton = view.findViewById<Button>(R.id.editCancelButton)
         val saveButton = view.findViewById<Button>(R.id.editSaveButton)
@@ -89,10 +88,6 @@ class EditCategoryFragment : DialogFragment() {
         category?.let { existingCategory ->
             editCategoryNameEditText?.setText(existingCategory.name)
             limitEditText?.setText(existingCategory.limit.toString()) // Set existing limit
-            val typeIndex = types.indexOf(existingCategory.type)
-            if (typeIndex != -1) {
-                editTypeSpinner?.setSelection(typeIndex)
-            }
         } ?: run {
             // If for some reason category is null (shouldn't happen with newInstance)
             Toast.makeText(requireContext(), "Error: Category not found for editing.", Toast.LENGTH_LONG).show()
@@ -113,7 +108,6 @@ class EditCategoryFragment : DialogFragment() {
                 val updatedCategory = category!!.copy(
                     name = updatedName,
                     limit = limit,
-                    type = selectedType,
                     // id and userId are copied from the original 'category' object
                     // They should not change during an edit operation.
                     id = category!!.id,

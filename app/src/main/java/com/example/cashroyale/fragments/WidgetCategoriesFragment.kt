@@ -53,7 +53,6 @@ class WidgetCategoriesFragment : DialogFragment() {
         // Initialize UI elements
         categoryNameEditText = view.findViewById(R.id.categoryNameEditText)
         limitEditText = view.findViewById(R.id.limitEditText)
-        transactionSpinner = view.findViewById(R.id.transactionSpinner)
         val okButton = view.findViewById<Button>(R.id.widgetOkButton)
         val cancelButton = view.findViewById<Button>(R.id.widgetCancelButton)
         manageCategoriesButton = view.findViewById(R.id.manageCategoriesButton)
@@ -69,7 +68,6 @@ class WidgetCategoriesFragment : DialogFragment() {
         okButton.setOnClickListener {
             val categoryName = categoryNameEditText?.text.toString().trim()
             val limit = limitEditText?.text.toString().toDoubleOrNull() // Use toDoubleOrNull for safety
-            val selectedTransaction = transactionSpinner?.selectedItem.toString()
             val userId = auth.currentUser?.uid // Get current user's UID
 
             // Input validation checks
@@ -100,7 +98,6 @@ class WidgetCategoriesFragment : DialogFragment() {
                             userId = userId, // Assign the current user's ID
                             name = categoryName,
                             limit = limit,
-                            type = selectedTransaction
                         )
                         fireStore.saveCategory(category) // Save the new category to Firestore
                         withContext(Dispatchers.Main) {

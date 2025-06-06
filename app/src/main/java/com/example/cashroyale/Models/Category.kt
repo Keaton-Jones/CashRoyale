@@ -20,10 +20,8 @@ data class Category(
     val name: String = "",
     // The limit associated with the category (e.g., budget for "Food"). Use 0.0 as default.
     val limit: Double = 0.0,
-    // The type of the category ("income" or "expense")
-    val type: String = ""
 ) : Parcelable {
     // No-argument constructor required for Firebase Firestore automatic deserialization.
     // It should initialize all properties with their default values.
-    constructor() : this("", "", "", 0.0, "")
+    constructor() : this("", "", "", 0.0)
 }
