@@ -1,6 +1,7 @@
 package com.example.cashroyale.DAO
 
 import androidx.room.*
+import androidx.room.Dao
 import com.example.cashroyale.Models.Expense
 import kotlinx.coroutines.flow.Flow
 

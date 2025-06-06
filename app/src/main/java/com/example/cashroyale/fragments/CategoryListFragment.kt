@@ -1,40 +1,56 @@
 package com.example.cashroyale.fragments
 
-import androidx.fragment.app.viewModels
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.cashroyale.viewmodels.CategoryListViewModel
 import com.example.cashroyale.Models.Category
 import com.example.cashroyale.R
+import com.example.cashroyale.Services.FireStore
+import com.example.cashroyale.databinding.FragmentCategoryListBinding // <--- Assuming this binding exists
 import com.example.cashroyale.viewmodels.CategoryAdapter
-import com.example.cashroyale.viewmodels.CategoryViewModelFactory
+import com.example.cashroyale.viewmodels.CategoryListViewModel
+import com.example.cashroyale.viewmodels.CategoryViewModelFactory // <--- Use the correct factory
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class CategoryListFragment : Fragment() {
+    // Correct binding for CategoryListFragment
+    private var _binding: FragmentCategoryListBinding? = null // Using nullable backing property for ViewBinding
+    private val binding get() = _binding!! // Non-null accessor
 
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+    private lateinit var fireStoreService: FireStore
+
+    // ViewModel initialization with the correct factory
     private val viewModel: CategoryListViewModel by viewModels {
-        CategoryViewModelFactory(requireContext()) // Initializes the ViewModel with a Factory
+        val application = requireActivity().application
+        // Initialize fireStoreService BEFORE passing it to the factory
+        fireStoreService = FireStore(db)
+        CategoryViewModelFactory( auth, db, fireStoreService, application) // <--- Pass all required parameters
     }
+
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var adapter: CategoryAdapter
-    private var goToCalendarButton: View? = null
+    // private var goToCalendarButton: View? = null // No longer needed with ViewBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflates the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_category_list, container, false)
-        categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
-        categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext()) // Sets the layout manager for the RecyclerView
-        goToCalendarButton = view.findViewById(R.id.goToCalendarButton)
+    ): View {
+        // Inflate the correct layout using ViewBinding
+        _binding = FragmentCategoryListBinding.inflate(inflater, container, false)
+        val view = binding.root
 
-        // Initializes the CategoryAdapter with an empty list and click listeners
+        categoryRecyclerView = binding.categoryRecyclerView // Access via binding
+        categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
         adapter = CategoryAdapter(emptyList(), this::onEditCategory, this::onDeleteCategory)
         categoryRecyclerView.adapter = adapter
 
@@ -44,7 +60,7 @@ class CategoryListFragment : Fragment() {
         }
 
         // Sets an OnClickListener for the button to navigate to the CalenderFragment
-        goToCalendarButton?.setOnClickListener {
+        binding.goToCalendarButton.setOnClickListener { // Access via binding
             findNavController().navigate(R.id.calenderFragment)
         }
 
@@ -63,5 +79,10 @@ class CategoryListFragment : Fragment() {
         // Calls the ViewModel function to delete the selected category
         viewModel.deleteCategory(category)
         // The UI will be updated automatically through the LiveData observation
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null // Clear the binding when the view is destroyed
     }
 }

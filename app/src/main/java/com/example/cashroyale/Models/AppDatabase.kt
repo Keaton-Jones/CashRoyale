@@ -6,10 +6,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.example.cashroyale.DAO.CategoryDAO
 import com.example.cashroyale.DAO.ExpenseDAO
 import com.example.cashroyale.DAO.IncomeDAO
-import com.example.cashroyale.DAO.MonthlyGoalDAO
 import com.example.cashroyale.DAO.UserDAO
 
 /**
@@ -17,17 +15,12 @@ import com.example.cashroyale.DAO.UserDAO
  * Defines the entities and DAOs used to interact with the database.
  * Includes migration strategies for database schema updates.
  */
-@Database(entities = [User::class, Category::class, MonthlyGoals::class, Expense::class, Income::class], version = 8)
+@Database(entities = [User::class, Expense::class, Income::class], version = 8)
 abstract class AppDatabase : RoomDatabase() {
 
     /** Provides access to the [User] data access object. */
     abstract fun userDAO(): UserDAO
 
-    /** Provides access to the [Category] data access object. */
-    abstract fun categoryDAO(): CategoryDAO
-
-    /** Provides access to the [MonthlyGoals] data access object. */
-    abstract fun monthlyGoalDAO(): MonthlyGoalDAO
 
     /** Provides access to the [Expense] data access object. */
     abstract fun expenseDAO(): ExpenseDAO

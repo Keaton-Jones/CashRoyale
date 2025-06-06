@@ -10,19 +10,39 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.activityViewModels
-import com.example.cashroyale.viewmodels.CategoryListViewModel
+import androidx.fragment.app.activityViewModels // For activity-scoped ViewModel
+import androidx.fragment.app.viewModels
 import com.example.cashroyale.Models.Category
 import com.example.cashroyale.R
+import com.example.cashroyale.Services.FireStore
+import com.example.cashroyale.viewmodels.CategoryListViewModel
 import com.example.cashroyale.viewmodels.CategoryViewModelFactory
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class EditCategoryFragment : DialogFragment() {
-    private var category: Category? = null
+
+    // These should be initialized once for the fragment lifecycle
+
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
+    private lateinit var fireStoreService: FireStore // Renamed to avoid confusion with the object instance
+
+    private var category: Category? = null // The category being edited
+    private var limitEditText: EditText? = null
     private var editCategoryNameEditText: EditText? = null
-    private var editColorSpinner: Spinner? = null
-    private var editTypeSpinner: Spinner? = null // Spinner to edit the category type
-    private val viewModel: CategoryListViewModel by activityViewModels {
-        CategoryViewModelFactory(requireContext()) // ViewModel shared with the activity
+    private var editTypeSpinner: Spinner? = null
+
+    // ViewModel should be initialized lazily with the correct factory
+    private val viewModel: CategoryListViewModel by viewModels {
+        // Initialize dependencies here BEFORE the ViewModel is created
+        val application = requireActivity().application
+        auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+        fireStoreService = FireStore(db) // Initialize FireStore service
+
+        // Pass all required parameters to your CategoryListViewModelFactory
+        CategoryViewModelFactory( auth, db, fireStoreService, application)
     }
 
     companion object {
@@ -40,7 +60,7 @@ class EditCategoryFragment : DialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Retrieves the category from the arguments
+        // Retrieve the category from the arguments
         arguments?.let {
             category = it.getParcelable(ARG_CATEGORY)
         }
@@ -49,31 +69,14 @@ class EditCategoryFragment : DialogFragment() {
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val builder = AlertDialog.Builder(requireContext())
         val inflater = LayoutInflater.from(requireContext())
-        val view = inflater.inflate(R.layout.fragment_edit_category, null)
+        val view = inflater.inflate(R.layout.fragment_edit_category, null) // Ensure this is your layout for editing categories
         builder.setView(view)
 
         // Initialize UI elements
         editCategoryNameEditText = view.findViewById(R.id.editCategoryNameEditText)
-        editColorSpinner = view.findViewById(R.id.editColourSpinner)
-        editTypeSpinner = view.findViewById(R.id.editTypeSpinner) // Initialize the type Spinner
+        limitEditText = view.findViewById(R.id.editLimitEditText)
         val cancelButton = view.findViewById<Button>(R.id.editCancelButton)
         val saveButton = view.findViewById<Button>(R.id.editSaveButton)
-
-        // Define available colors and their hex codes
-        val colors = arrayOf("Red", "Green", "Blue", "Yellow", "Pink", "Orange", "White", "Black")
-        val colorMap = mapOf(
-            "Red" to "#FF0000",
-            "Green" to "#00FF00",
-            "Blue" to "#0000FF",
-            "Yellow" to "#FFFF00",
-            "Pink" to "#FF1493",
-            "Orange" to "#FFA500",
-            "White" to "#FFFFFF",
-            "Black" to "#000000"
-        )
-        // Set up the adapter for the color spinner
-        val colorAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, colors)
-        editColorSpinner?.adapter = colorAdapter
 
         // Define available category types
         val types = arrayOf("income", "expense")
@@ -82,34 +85,43 @@ class EditCategoryFragment : DialogFragment() {
         editTypeSpinner?.adapter = typeAdapter
 
         // Populate the fields with the existing category data
-        category?.let {
-            editCategoryNameEditText?.setText(it.name)
-            val colorIndex = colors.indexOf(it.color)
-            if (colorIndex != -1) {
-                editColorSpinner?.setSelection(colorIndex)
-            }
-            val typeIndex = types.indexOf(it.type)
-            if (typeIndex != -1) {
-                editTypeSpinner?.setSelection(typeIndex)
-            }
+        category?.let { existingCategory ->
+            editCategoryNameEditText?.setText(existingCategory.name)
+            limitEditText?.setText(existingCategory.limit.toString()) // Set existing limit
+        } ?: run {
+            // If for some reason category is null (shouldn't happen with newInstance)
+            Toast.makeText(requireContext(), "Error: Category not found for editing.", Toast.LENGTH_LONG).show()
+            dismiss()
         }
+
 
         // Set the OnClickListener for the save button
         saveButton.setOnClickListener {
             val updatedName = editCategoryNameEditText?.text.toString().trim()
-            val selectedColorName = editColorSpinner?.selectedItem.toString()
-            val updatedColor = colorMap[selectedColorName] ?: "#808080" // Default color if not found
             val selectedType = editTypeSpinner?.selectedItem.toString()
+            val limit = limitEditText?.text.toString().toDoubleOrNull() // Use toDoubleOrNull for safety
 
-            // Check if the category name is not blank
-            if (updatedName.isNotBlank() && category != null) {
-                // Create an updated Category object
-                val updatedCategory = category!!.copy(name = updatedName, color = updatedColor, type = selectedType)
-                // Update the category using the ViewModel
+            // Check if name is not blank, category exists, and limit is valid
+            if (updatedName.isNotBlank() && category != null && limit != null) {
+                // Create an updated Category object using the original category's ID and userId
+                // The 'id' and 'userId' are crucial for Firestore operations (update, filter)
+                val updatedCategory = category!!.copy(
+                    name = updatedName,
+                    limit = limit,
+                    // id and userId are copied from the original 'category' object
+                    // They should not change during an edit operation.
+                    id = category!!.id,
+                    userId = category!!.userId
+                )
+                // Update the category using the ViewModel (best practice)
                 viewModel.updateCategory(updatedCategory)
-                dismiss() // Dismiss the dialog
+                dismiss() // Dismiss the dialog after initiating update
             } else {
-                Toast.makeText(requireContext(), "Please enter a category name", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    requireContext(),
+                    "Please enter a category name and a valid limit.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
@@ -119,5 +131,13 @@ class EditCategoryFragment : DialogFragment() {
         }
 
         return builder.create()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clear references to views to prevent memory leaks
+        limitEditText = null
+        editCategoryNameEditText = null
+        editTypeSpinner = null
     }
 }
