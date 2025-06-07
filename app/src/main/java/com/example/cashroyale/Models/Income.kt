@@ -1,39 +1,34 @@
 package com.example.cashroyale.Models
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
 /**
  * Represents an income record in the application.
- * The [Entity] annotation specifies that this class maps to a database table named "income".
+ * This version is adapted for use with Firebase Firestore instead of Room.
  */
-@Entity(tableName = "income")
 data class Income(
-    /**
-     * Unique identifier for the income entry.
-     * The [PrimaryKey] annotation marks this field as the primary key of the table.
-     * `autoGenerate = true` indicates that the database will automatically generate the ID.
-     */
-    @PrimaryKey(autoGenerate = true) val incomeId: Int = 0,
+    /** Firestore document ID — must be set manually or retrieved after saving. */
+    var id: String = "",
+
+    /** The ID of the user to whom this income belongs — used for filtering. */
+    val userId: String = "",
 
     /** A brief description of the income source (e.g., "Salary", "Freelance work"). */
-    val description: String,
+    val description: String = "",
 
     /** The monetary amount of the income. */
-    val amount: Double,
+    val amount: Double = 0.0,
 
     /** The date when the income was received (stored as a String for simplicity). */
-    val date: String,
+    val date: String = "",
 
     /** The method through which the income was received (e.g., "Bank transfer", "Cash"). */
-    val paymentMethod: String,
+    val paymentMethod: String = "",
 
     /** The category to which the income belongs (e.g., "Salary", "Investments"). */
-    val category: String,
+    val category: String = "",
 
     /**
      * The URI of an image associated with the income (e.g., a deposit slip).
      * Can be null if no image is attached.
      */
-    val imageUri: String?
+    val imageUri: String? = null
 )
