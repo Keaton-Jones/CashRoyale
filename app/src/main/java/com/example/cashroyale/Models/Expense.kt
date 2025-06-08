@@ -1,21 +1,8 @@
 package com.example.cashroyale.Models
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-/**
- * Represents an expense record in the application.
- * The [Entity] annotation specifies that this class maps to a database table named "expenses".
- */
-@Entity(tableName = "expenses")
 data class Expense(
-    /**
-     * Unique identifier for the expense.
-     * The [PrimaryKey] annotation marks this field as the primary key of the table.
-     * `autoGenerate = true` indicates that the database will automatically generate the ID.
-     */
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-
+    var id: String = "",                  // Firestore document ID
+    val userId: String = "",             // Required for user filtering
     /** A brief description of the expense (e.g., "Grocery shopping", "Dinner with friends"). */
     val description: String,
 

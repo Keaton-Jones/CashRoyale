@@ -2,6 +2,7 @@ package com.example.cashroyale.Services
 
 import android.util.Log
 import com.example.cashroyale.Models.Category
+import com.example.cashroyale.Models.Expense
 import com.example.cashroyale.Models.Income
 import com.example.cashroyale.Models.MonthlyGoals
 import com.example.cashroyale.Models.Transactions
@@ -187,7 +188,7 @@ class FireStore(private val db: FirebaseFirestore) {
         }
     }
 
-    // --- Income (correctly placed) ---
+    // --- Income ---
 
     suspend fun saveIncome(income: Income) {
         try {
@@ -253,6 +254,76 @@ class FireStore(private val db: FirebaseFirestore) {
             } else null
         } catch (e: Exception) {
             Log.e("FireStore", "Error getting income: ${e.message}", e)
+            null
+        }
+    }
+
+    // --- Expense ---
+
+    suspend fun saveExpense(expense: Expense) {
+        try {
+            val docRef = if (expense.id.isEmpty()) {
+                db.collection("expenses").document()
+            } else {
+                db.collection("expenses").document(expense.id)
+            }
+
+            docRef.set(expense.copy(id = docRef.id)).await()
+            Log.d("FireStore", "Expense saved with ID: ${docRef.id}")
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error saving expense: ${e.message}", e)
+            throw e
+        }
+    }
+
+    suspend fun updateExpense(expense: Expense) {
+        try {
+            db.collection("expenses").document(expense.id)
+                .set(expense, SetOptions.merge()).await()
+            Log.d("FireStore", "Expense updated: ${expense.id}")
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error updating expense: ${e.message}", e)
+            throw e
+        }
+    }
+
+    suspend fun deleteExpense(expenseId: String) {
+        try {
+            db.collection("expenses").document(expenseId).delete().await()
+            Log.d("FireStore", "Expense deleted: $expenseId")
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error deleting expense: ${e.message}", e)
+            throw e
+        }
+    }
+
+    fun getAllExpensesFlow(userId: String): Flow<List<Expense>> = callbackFlow {
+        val listenerRegistration = db.collection("expenses")
+            .whereEqualTo("userId", userId)
+            .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    close(e)
+                    return@addSnapshotListener
+                }
+
+                val expenseList = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(Expense::class.java)?.apply { id = doc.id }
+                } ?: emptyList()
+                trySend(expenseList).isSuccess
+            }
+
+        awaitClose { listenerRegistration.remove() }
+    }
+
+    suspend fun getExpenseById(expenseId: String): Expense? {
+        return try {
+            val doc = db.collection("expenses").document(expenseId).get().await()
+            if (doc.exists()) {
+                doc.toObject(Expense::class.java)?.apply { id = doc.id }
+            } else null
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error getting expense: ${e.message}", e)
             null
         }
     }
