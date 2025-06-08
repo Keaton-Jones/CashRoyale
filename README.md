@@ -186,3 +186,5 @@ Map: Developers , 10 February 2025 ,
 https://developer.android.com/reference/java/util/Map 
 
 Gemini: Google, 02 May 2025 , https://g.co/gemini/share/613a93de0d98
+
+Gemini: Google, 05 June 2025 https://g.co/gemini/share/3dd862c80371
