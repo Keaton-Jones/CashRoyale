@@ -57,7 +57,11 @@ Users will be able to set a minimum and maximum monthly spending goal.
  
 7.  Expense History :
 Users will have the option to generate a list of expenses over a selectable date 
-range. 
+range.
+
+Additional Features:
+
+1. We have implemented a send monthly report feature that will generate an email to inform the user of their current months goals and spending habits.
  
 Required Software :
 To successfully run the app, you’ll need to have several key tools installed on your 
