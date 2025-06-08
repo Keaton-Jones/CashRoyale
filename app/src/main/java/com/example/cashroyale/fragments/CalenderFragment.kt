@@ -33,29 +33,44 @@ import kotlinx.coroutines.launch
 
 class CalenderFragment : Fragment() {
 
+    // View binding for easy access to views in the layout
     private var _binding: FragmentCalenderBinding? = null
     private val binding get() = _binding!!
 
+    // Firebase Authentication instance
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    // Firestore database instance
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    // Service to send emails
     private val emailService = EmailService()
 
+    // Firestore wrapper service
     private lateinit var fireStoreService: FireStore
+
+    // AuthService singleton instance
     private val authService = AuthService.getInstance()
 
+    // ViewModel for calendar data and logic
     private val viewModel: CalenderViewModel by viewModels {
         val application = requireActivity().application
-        fireStoreService = FireStore(db)
-        CalenderViewModelFactory(auth, db, fireStoreService, application)
+        fireStoreService = FireStore(db)  // Initialize Firestore wrapper
+        CalenderViewModelFactory(auth, db, fireStoreService, application)  // Provide dependencies
     }
 
+    // RecyclerView to display transactions
     private lateinit var recyclerView: RecyclerView
+
+    // Adapter for transactions RecyclerView
     private lateinit var adapter: TransactionsAdapter
 
+    // Lists to store income and expense transactions separately
     private val incomeList = mutableListOf<Transactions>()
     private val expenseList = mutableListOf<Transactions>()
 
     companion object {
+        // Factory method to create new instance of this fragment
         fun newInstance() = CalenderFragment()
     }
 
@@ -64,16 +79,19 @@ class CalenderFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        // Inflate the fragment layout with view binding
         _binding = FragmentCalenderBinding.inflate(inflater, container, false)
         val view = binding.root
 
-        // Setup RecyclerView once here
+        // Setup RecyclerView with vertical linear layout
         recyclerView = binding.recyclerView
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Initialize the adapter with an empty list initially
         adapter = TransactionsAdapter(emptyList())
         recyclerView.adapter = adapter
 
-        // Button listeners
+        // Setup button click listeners to navigate to adding income or expense screens
         binding.btnExpenses.setOnClickListener {
             startActivity(Intent(requireContext(), AddExpense::class.java))
         }
@@ -82,45 +100,56 @@ class CalenderFragment : Fragment() {
             startActivity(Intent(requireContext(), AddIncome::class.java))
         }
 
+        // Button to send budget report via email
         binding.btnSendReport.setOnClickListener {
             sendReport()
         }
 
+        // Button to show category creation dialog
         binding.createCategoryImageButton.setOnClickListener {
             showWidgetDialogFragment()
         }
 
+        // Start observing LiveData from ViewModel to update UI automatically
         observeViewModel()
 
+        // Get the current user's ID
         val userId = auth.currentUser?.uid
+
+        // If user not logged in, show error and return early
         if (userId.isNullOrEmpty()) {
             Log.e(TAG, "User not authenticated or not logged in. Cannot proceed.")
             Toast.makeText(context, "User not logged in. Please log in.", Toast.LENGTH_LONG).show()
             return view
         }
 
-        // Check if monthly goals exist and prompt if not
+        // Check if monthly budget goals exist for this user in Firestore
         db.collection("monthlyGoals").whereEqualTo("userId", userId).get().addOnCompleteListener { task ->
+            // If no goals found, prompt user to set goals
             if (task.isSuccessful && task.result.isEmpty) {
                 showGoalInputDialog(userId)
             }
         }
 
-        // Start realtime fetching of transactions
+        // Start real-time listening for income and expense transactions
         setupRealtimeListeners(userId)
 
         return view
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun sendReport() {
+        // Get budget info from ViewModel
         val max = viewModel.maxMonthlyBudget.value
         val spent = viewModel.totalExpenses.value
         val remaining = viewModel.remainingMaxBudget.value
 
+        // Create the report string with formatted numbers
         var report = "Your monthly budget is R ${String.format("%.2f", max ?: 0.0)}\n" +
                 "You spent a total of R ${String.format("%.2f", spent ?: 0.0)} this month\n" +
                 "Your remaining budget is R ${String.format("%.2f", remaining ?: 0.0)}\n"
 
+        // Add info about reaching minimum monthly goal
         if (max != null && spent != null && remaining != null) {
             if (max - spent > remaining) {
                 report += "You have not reached your minimum monthly goal of R ${String.format("%.2f", viewModel.minMonthlyBudget.value)}"
@@ -129,11 +158,13 @@ class CalenderFragment : Fragment() {
             }
         }
 
+        // Send the report to the current user's email
         auth.currentUser?.email?.let { email ->
             emailService.sendSpendBreakdownEmail(requireContext(), email, report)
         }
     }
 
+    // Observe LiveData in ViewModel and update UI when data changes
     private fun observeViewModel() {
         viewModel.maxMonthlyBudget.observe(viewLifecycleOwner) { maxBudget ->
             binding.numMaxBudgetTextView.text = maxBudget?.let { "R ${String.format("%.2f", it)}" } ?: "R N/A"
@@ -152,6 +183,7 @@ class CalenderFragment : Fragment() {
         }
     }
 
+    // Setup Firestore real-time listeners for income and expenses for the current user
     private fun setupRealtimeListeners(userId: String) {
         db.collection("income")
             .whereEqualTo("userId", userId)
@@ -163,7 +195,7 @@ class CalenderFragment : Fragment() {
                 incomeList.clear()
                 incomeSnapshot?.documents?.forEach { doc ->
                     val income = doc.toObject(Transactions::class.java)
-                    income?.type = "income"
+                    income?.type = "income"  // Mark type as income
                     income?.let { incomeList.add(it) }
                 }
                 mergeAndDisplayTransactions()
@@ -179,13 +211,14 @@ class CalenderFragment : Fragment() {
                 expenseList.clear()
                 expenseSnapshot?.documents?.forEach { doc ->
                     val expense = doc.toObject(Transactions::class.java)
-                    expense?.type = "expense"
+                    expense?.type = "expense"  // Mark type as expense
                     expense?.let { expenseList.add(it) }
                 }
                 mergeAndDisplayTransactions()
             }
     }
 
+    // Combine income and expenses, sort by date descending, then update adapter
     private fun mergeAndDisplayTransactions() {
         val mergedList = incomeList + expenseList
         val sortedList = mergedList.sortedByDescending { it.date }
@@ -194,30 +227,36 @@ class CalenderFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh the RecyclerView data on fragment resume, if user logged in
+        // When returning to this fragment, refresh listeners if user is logged in
         val userId = auth.currentUser?.uid
         if (!userId.isNullOrEmpty()) {
             setupRealtimeListeners(userId)
         }
     }
 
+    // Show the dialog fragment to create categories (widget)
     private fun showWidgetDialogFragment() {
         val widgetDialogFragment = WidgetCategoriesFragment()
         widgetDialogFragment.show(childFragmentManager, "WidgetDialogFragment")
     }
 
+    // Show dialog to let user input monthly budget goals if none exist
     private fun showGoalInputDialog(userId: String) {
+        // Inflate custom layout for setting goals
         val inputView = LayoutInflater.from(requireContext()).inflate(R.layout.set_goals, null)
 
+        // Find the input fields for max and min goals
         val maxGoalEditText = inputView.findViewById<EditText>(R.id.editTextMaxGoal)
         val minGoalEditText = inputView.findViewById<EditText>(R.id.editTextMinGoal)
 
+        // Create dialog with the custom view and title
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle("Set Your Monthly Goals")
             .setView(inputView)
             .setCancelable(false)
             .create()
 
+        // When "Set Goals" button is clicked inside the dialog
         inputView.findViewById<Button>(R.id.btnSetGoals).setOnClickListener {
             val maxGoalStr = maxGoalEditText.text.toString().trim()
             val minGoalStr = minGoalEditText.text.toString().trim()
@@ -226,9 +265,11 @@ class CalenderFragment : Fragment() {
                 val maxGoal = maxGoalStr.toDoubleOrNull()
                 val minGoal = minGoalStr.toDoubleOrNull()
 
+                // Check if goals are valid and min is less or equal max
                 if (maxGoal != null && minGoal != null && minGoal <= maxGoal) {
                     lifecycleScope.launch {
                         try {
+                            // Save goals through ViewModel
                             viewModel.saveMonthlyGoals(maxGoal, minGoal)
                             dialog.dismiss()
                             Toast.makeText(requireContext(), "Goals saved successfully!", Toast.LENGTH_SHORT).show()
@@ -241,19 +282,14 @@ class CalenderFragment : Fragment() {
                     Toast.makeText(requireContext(), "Invalid goal values. Min goal must be less than or equal to Max goal.", Toast.LENGTH_LONG).show()
                 }
             } else {
-                Toast.makeText(requireContext(), "Please enter both goals.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Please fill both max and min goals.", Toast.LENGTH_LONG).show()
             }
         }
-
-        inputView.findViewById<Button>(R.id.btnSetLater).setOnClickListener {
-            dialog.dismiss()
-        }
-
         dialog.show()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
+        _binding = null // Avoid memory leaks by clearing binding reference
     }
 }
