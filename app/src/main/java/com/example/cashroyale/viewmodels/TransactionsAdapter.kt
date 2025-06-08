@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.cashroyale.Models.Transactions
 import com.example.cashroyale.R
 
-class TransactionsAdapter(private val transactionsList: List<Transactions>) :
+class TransactionsAdapter(private var transactionsList: List<Transactions>) :
     RecyclerView.Adapter<TransactionsAdapter.TransactionViewHolder>() {
 
     inner class TransactionViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -16,6 +16,7 @@ class TransactionsAdapter(private val transactionsList: List<Transactions>) :
         val amountTextView: TextView = itemView.findViewById(R.id.tvAmount)
         val dateTextView: TextView = itemView.findViewById(R.id.tvDate)
         val typeTextView: TextView = itemView.findViewById(R.id.tvType)
+        val categoryTextView: TextView = itemView.findViewById(R.id.tvCategory)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TransactionViewHolder {
@@ -29,9 +30,9 @@ class TransactionsAdapter(private val transactionsList: List<Transactions>) :
         holder.descriptionTextView.text = transaction.description
         holder.amountTextView.text = "R${transaction.amount}"
         holder.dateTextView.text = transaction.date
-        holder.typeTextView.text = transaction.type // Income or Expense
+        holder.typeTextView.text = transaction.type
+        holder.categoryTextView.text = transaction.category
 
-        // Sets the colour depending on the type of transaction
         val colorRes = if (transaction.type.lowercase() == "income") {
             R.color.green
         } else {
@@ -41,4 +42,9 @@ class TransactionsAdapter(private val transactionsList: List<Transactions>) :
     }
 
     override fun getItemCount(): Int = transactionsList.size
+
+    fun updateData(newTransactions: List<Transactions>) {
+        transactionsList = newTransactions
+        notifyDataSetChanged()
+    }
 }

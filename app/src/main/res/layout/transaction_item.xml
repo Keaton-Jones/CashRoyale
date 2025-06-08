@@ -27,13 +27,23 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/tvCategory"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Category"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/tvDescription"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/tvType" />
+
+    <TextView
         android:id="@+id/tvDate"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textColor="@color/black"
         android:text="2025-06-08"
+        app:layout_constraintTop_toBottomOf="@id/tvCategory"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvDescription"
         app:layout_constraintEnd_toStartOf="@id/tvType" />
 
     <TextView
@@ -43,6 +53,7 @@
         android:textColor="@color/black"
         android:text="Income"
         android:textStyle="italic"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tvAmount" />
+        app:layout_constraintTop_toBottomOf="@id/tvAmount"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
