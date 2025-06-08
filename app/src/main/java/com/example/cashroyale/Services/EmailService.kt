@@ -11,7 +11,11 @@ import androidx.annotation.RequiresApi
 class EmailService {
 
 
-
+    /*
+    * We were initial going to use sendgrid but were unable to incorporate it into our project as it required
+    * us to do domain authentication from our email sender.(DMARC check failed) Thus prompting us to use androids
+    * built in email sender.
+    * Gemini: Google, 05 June 2025 https://g.co/gemini/share/3dd862c80371*/
     @RequiresApi(Build.VERSION_CODES.O)
     fun sendSpendBreakdownEmail(context: Context, recipientEmail: String, breakdownText: String) {
         val emailSubject = "Your Monthly Spend Breakdown - ${java.time.LocalDate.now().month.name}"
@@ -20,16 +24,12 @@ class EmailService {
                 "Thanks for using our app!"
 
         val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain" // Use "message/rfc822" for a more robust email type
-            putExtra(Intent.EXTRA_EMAIL, arrayOf(recipientEmail)) // Recipients
+            type = "text/plain"
+            putExtra(Intent.EXTRA_EMAIL, arrayOf(recipientEmail))
             putExtra(Intent.EXTRA_SUBJECT, emailSubject)
             putExtra(Intent.EXTRA_TEXT, emailBody)
-            // Optionally, add a BCC or CC:
-            // putExtra(Intent.EXTRA_CC, arrayOf("cc@example.com"))
-            // putExtra(Intent.EXTRA_BCC, arrayOf("bcc@example.com"))
         }
 
-        // Always check if there's an app that can handle the intent
         if (intent.resolveActivity(context.packageManager) != null) {
             context.startActivity(Intent.createChooser(intent, "Send budget report via..."))
         } else {
