@@ -65,6 +65,7 @@ dependencies {
     // Picasso (Image loading library)
     implementation("com.squareup.picasso:picasso:2.8")
 
+
     // Firebase - Ensure platform BOM is at the top of Firebase dependencies
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     implementation(libs.firebase.firestore.ktx) // From libs.versions.toml
