@@ -120,7 +120,7 @@ class AddIncome : AppCompatActivity() {
             }
 
             val income = Income(
-                id = "", // empty string for new document; Firestore will assign ID
+                id = "", //  Firestore will assign ID
                 userId = userId,
                 description = description,
                 amount = amount,
