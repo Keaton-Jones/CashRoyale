@@ -85,7 +85,7 @@ dependencies {
     implementation(libs.room.common.jvm)
     implementation(libs.room.runtime.android)
 
-
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     // Testing dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
