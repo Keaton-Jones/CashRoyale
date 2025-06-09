@@ -55,13 +55,13 @@ need to provide details such as the amount, date, and a short description.
 6.  Budget Goals :
 Users will be able to set a minimum and maximum monthly spending goal. 
  
-7.  Expense History :
-Users will have the option to generate a list of expenses over a selectable date 
-range.
+7.  Transaction History :
+Users will be able to see the history of all transactions, both income and expense that the user has made. The transactions have been collated and displayed in one recyclerView.
 
 Additional Features:
 
 1. We have implemented a send monthly report feature that will generate an email to inform the user of their current months goals and spending habits.
+2. The application has implemented gamification, by use of a dynmaic progress bar. The user will be able to keep track of their progress in terms of sticking to their expense goals, via saidprogress bar, along with personalised tips/advice depending on their progress.
  
 Required Software :
 To successfully run the app, you’ll need to have several key tools installed on your 
