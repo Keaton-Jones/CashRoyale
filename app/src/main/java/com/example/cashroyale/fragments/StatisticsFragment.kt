@@ -1,24 +1,25 @@
 package com.example.cashroyale.fragments
 
 import android.app.DatePickerDialog
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
+import androidx.core.view.setPadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.example.cashroyale.R
 import com.example.cashroyale.Services.FireStore
-import com.github.mikephil.charting.charts.BarChart
-import com.github.mikephil.charting.components.Description
-import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.BarData
-import com.github.mikephil.charting.data.BarDataSet
-import com.github.mikephil.charting.data.BarEntry
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.data.PieData
+import com.github.mikephil.charting.data.PieDataSet
+import com.github.mikephil.charting.data.PieEntry
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.first
@@ -28,10 +29,12 @@ import java.util.Calendar
 import java.util.Locale
 
 class StatisticsFragment : Fragment() {
+
     private lateinit var edtStart: EditText
     private lateinit var edtEnd: EditText
     private lateinit var btnGenerate: Button
-    private lateinit var chart: BarChart
+    private lateinit var chart: PieChart
+    private lateinit var legendLayout: LinearLayout
 
     private val firestore by lazy { FireStore(FirebaseFirestore.getInstance()) }
     private val auth by lazy { FirebaseAuth.getInstance() }
@@ -47,7 +50,8 @@ class StatisticsFragment : Fragment() {
         edtStart = view.findViewById(R.id.edtStartDate)
         edtEnd = view.findViewById(R.id.edtEndDate)
         btnGenerate = view.findViewById(R.id.btnGenerate)
-        chart = view.findViewById(R.id.chart)
+        chart = view.findViewById(R.id.pieChart)
+        legendLayout = view.findViewById(R.id.legendLayout)
 
         edtStart.setOnClickListener { pickDate(edtStart) }
         edtEnd.setOnClickListener { pickDate(edtEnd) }
@@ -77,7 +81,7 @@ class StatisticsFragment : Fragment() {
                 val totals = cats.associate { it.name to 0.0 }.toMutableMap()
                 filtered.forEach { totals[it.category] = totals.getOrDefault(it.category, 0.0) + it.amount }
 
-                displayChart(totals)
+                displayPieChart(totals.filter { it.value > 0.0 })
             }
         }
     }
@@ -96,23 +100,57 @@ class StatisticsFragment : Fragment() {
         datePicker.show()
     }
 
-    private fun displayChart(data: Map<String, Double>) {
-        val entries = data.entries
-            .filter { it.value > 0 }
-            .mapIndexed { i, e -> BarEntry(i.toFloat(), e.value.toFloat()) }
-        val adapter = BarDataSet(entries, "Spent per Category")
-        val barData = BarData(adapter)
+    private fun displayPieChart(data: Map<String, Double>) {
+        val entries = data.map { PieEntry(it.value.toFloat(), it.key) }
+        val colors = generateColorPalette(data.size)
+
+        val dataSet = PieDataSet(entries, "Expenses by Category").apply {
+            setColors(colors)
+            valueTextColor = Color.WHITE
+            valueTextSize = 14f
+            sliceSpace = 3f
+        }
+
         chart.apply {
-            this.data = barData
-            xAxis.apply {
-                valueFormatter = IndexAxisValueFormatter(data.keys.toList())
-                granularity = 1f
-                position = XAxis.XAxisPosition.BOTTOM
-            }
-            setFitBars(true)
-            description = Description().apply { text = "" }
-            animateY(500)
+            this.data = PieData(dataSet)
+            description.isEnabled = false
+            centerText = "Expenses"
+            animateY(800)
+            setEntryLabelColor(Color.BLACK)
+            setUsePercentValues(false)
+            setDrawEntryLabels(true)
+            legend.isEnabled = false
             invalidate()
         }
+
+        renderLegend(data, colors)
+    }
+
+    private fun renderLegend(data: Map<String, Double>, colors: List<Int>) {
+        legendLayout.removeAllViews()
+        val inflater = LayoutInflater.from(context)
+        data.keys.forEachIndexed { index, name ->
+            val item = TextView(context).apply {
+                text = "⬤ $name"
+                setPadding(10)
+                setTextColor(colors[index])
+                textSize = 16f
+            }
+            legendLayout.addView(item)
+        }
+    }
+
+    private fun generateColorPalette(count: Int): List<Int> {
+        val baseColors = listOf(
+            Color.parseColor("#FF6F61"),
+            Color.parseColor("#6B5B95"),
+            Color.parseColor("#88B04B"),
+            Color.parseColor("#F7CAC9"),
+            Color.parseColor("#92A8D1"),
+            Color.parseColor("#955251"),
+            Color.parseColor("#B565A7"),
+            Color.parseColor("#009B77")
+        )
+        return List(count) { baseColors[it % baseColors.size] }
     }
 }
