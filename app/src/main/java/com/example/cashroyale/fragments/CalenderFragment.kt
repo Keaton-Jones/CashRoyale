@@ -139,32 +139,29 @@ class CalenderFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun sendReport() {
-        // Get budget info from ViewModel
+        // Get overall budget info from ViewModel
         val max = viewModel.maxMonthlyBudget.value
         val spent = viewModel.totalExpenses.value
         val remaining = viewModel.remainingMaxBudget.value
 
-        // Create the report string with formatted numbers
-        var report = "Your monthly budget is R ${String.format("%.2f", max ?: 0.0)}\n" +
+        var report = "Monthly Budget Overview:\n\n" +
+                "Your overall monthly budget is R ${String.format("%.2f", max ?: 0.0)}\n" +
                 "You spent a total of R ${String.format("%.2f", spent ?: 0.0)} this month\n" +
-                "Your remaining budget is R ${String.format("%.2f", remaining ?: 0.0)}\n"
+                "Your remaining overall budget is R ${String.format("%.2f", remaining ?: 0.0)}\n\n"
 
         // Add info about reaching minimum monthly goal
         if (max != null && spent != null && remaining != null) {
-            if (max - spent > remaining) {
-                report += "You have not reached your minimum monthly goal of R ${String.format("%.2f", viewModel.minMonthlyBudget.value)}"
+            val minGoal = viewModel.minMonthlyBudget.value ?: 0.0
+            if (spent >= minGoal) { // Reaching min goal means spending AT LEAST minGoal
+                report += "✅ You have reached your minimum monthly goal of R ${String.format("%.2f", minGoal)}\n\n"
             } else {
-                report += "You have reached your minimum monthly goal of R ${String.format("%.2f", viewModel.minMonthlyBudget.value)}"
+                report += "❌ You have not yet reached your minimum monthly goal of R ${String.format("%.2f", minGoal)}\n\n"
             }
-        }
-
-        // Send the report to the current user's email
-        auth.currentUser?.email?.let { email ->
-            emailService.sendSpendBreakdownEmail(requireContext(), email, report)
         }
     }
 
     // Observe LiveData in ViewModel and update UI when data changes
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun observeViewModel() {
         viewModel.maxMonthlyBudget.observe(viewLifecycleOwner) { maxBudget ->
             binding.numMaxBudgetTextView.text = maxBudget?.let { "R ${String.format("%.2f", it)}" } ?: "R N/A"
@@ -178,6 +175,7 @@ class CalenderFragment : Fragment() {
             binding.numAmountSpentTextView.text = "R ${String.format("%.2f", totalSpent ?: 0.0)}"
         }
 
+        // In observeViewModel()
         viewModel.remainingMaxBudget.observe(viewLifecycleOwner) { remainingBudget ->
             binding.numRemainingBudgetTextView.text = remainingBudget?.let { "R ${String.format("%.2f", it)}" } ?: "R N/A"
         }

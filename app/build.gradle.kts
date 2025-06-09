@@ -64,10 +64,6 @@ dependencies {
 
     // Picasso (Image loading library)
     implementation("com.squareup.picasso:picasso:2.8")
-
-    // Firebase - Ensure platform BOM is at the top of Firebase dependencies
-    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
-    implementation(libs.firebase.firestore.ktx) // From libs.versions.toml
     implementation(libs.firebase.auth.ktx)     // From libs.versions.toml
 
     // Kotlin Reflect - Only needed if you are doing reflective operations. Remove if not explicitly used.
@@ -84,6 +80,7 @@ dependencies {
     implementation(libs.room.common.jvm)
     implementation(libs.room.runtime.android)
     implementation(libs.firebase.database.ktx)
+    implementation(libs.firebase.firestore.ktx)
 
 
     // Testing dependencies

@@ -3,9 +3,20 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/rokuPurple"
     android:padding="16dp">
 
     <!-- Goal Status Info -->
+    <TextView
+        android:id="@+id/tvGoalStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="Loading goal..."
+        android:textColor="@android:color/black"
+        android:textSize="18sp" />
+
     <TextView
         android:id="@+id/statusText"
         android:layout_width="match_parent"
@@ -26,14 +37,6 @@
         android:layout_marginBottom="16dp" />
 
     <!-- New Goal Status TextView -->
-    <TextView
-        android:id="@+id/tvGoalStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Loading goal..."
-        android:textSize="18sp"
-        android:gravity="center"
-        android:padding="16dp" />
 
     <!-- Goal RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
