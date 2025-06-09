@@ -1,7 +1,6 @@
 package com.example.cashroyale.viewmodels
 
 import android.app.Application
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -11,67 +10,71 @@ import androidx.lifecycle.liveData
 import androidx.lifecycle.map
 import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import com.example.cashroyale.DAO.ExpenseDAO
-import com.example.cashroyale.DAO.MonthlyGoalDAO
-import com.example.cashroyale.DAO.UserDAO
 import com.example.cashroyale.Models.MonthlyGoals
-import com.example.cashroyale.Models.User
+import com.example.cashroyale.Models.User // Ensure this User model aligns with your authentication needs
+import com.example.cashroyale.Services.FireStore
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-/**
- * ViewModel for the CalenderFragment, managing and providing calendar-related data.
- * Interacts with User, MonthlyGoal, and Expense DAOs.
- */
-class CalenderViewModel(application: Application, private val userDao: UserDAO, private val monthlyGoalsDao: MonthlyGoalDAO, private val expenseDAO: ExpenseDAO) : AndroidViewModel(application) {
+class CalenderViewModel(
+    application: Application,
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore, // Passed for completeness, but FireStore service uses it
+    private val fireStore: FireStore // Your primary data source service
+) : AndroidViewModel(application) {
 
-    // LiveData for the currently logged-in user
     private val _loggedInUser = MutableLiveData<User?>()
     val loggedInUser: LiveData<User?> = _loggedInUser
 
-    // LiveData indicating if monthly goals are set
-    private val _monthlyGoalsSet = MutableLiveData<Boolean>()
+    // Initialized to false, updated by Flow observer
+    private val _monthlyGoalsSet = MutableLiveData<Boolean>(false)
     val monthlyGoalsSet: LiveData<Boolean> = _monthlyGoalsSet
 
-    // LiveData for the current monthly goals
+    // This LiveData will be updated by the Flow observer
     private val _currentMonthlyGoals = MutableLiveData<MonthlyGoals?>()
     val currentMonthlyGoals: LiveData<MonthlyGoals?> = _currentMonthlyGoals
 
-    // LiveData for the maximum monthly budget
+    // Mapped LiveData for UI directly from _currentMonthlyGoals
     val maxMonthlyBudget: LiveData<Double?> = _currentMonthlyGoals.map { it?.maxGoalAmount }
-
-    // LiveData for the minimum monthly budget (savings goal)
     val minMonthlyBudget: LiveData<Double?> = _currentMonthlyGoals.map { it?.minGoalAmount }
 
-    // LiveData for the selected date
     private val _selectedDate = MutableLiveData<Long>(System.currentTimeMillis())
     val selectedDate: LiveData<Long> = _selectedDate
 
-    /**
-     * LiveData for the total expenses of the current month.
-     * Retrieves all expenses and filters them for the current month.
-     */
+    // Total expenses for the current month, observed via LiveData and re-calculated when date or transactions change
     val totalExpenses: LiveData<Double> = _selectedDate.switchMap { date ->
         liveData {
             val startDateLong = getStartOfMonth(date)
             val endDateLong = getEndOfMonth(date)
             val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
-            expenseDAO.getAllExpenses()
-                .collectLatest { allExpenses ->
+            val currentUserId = auth.currentUser?.uid
+            if (currentUserId == null) {
+                emit(0.0)
+                return@liveData
+            }
+
+            // Collect latest emitted list of transactions from Firestore Flow
+            fireStore.getAllTransactions(currentUserId)
+                .collectLatest { allTransactions ->
                     var sum = 0.0
-                    allExpenses.forEach { expense ->
+                    allTransactions.forEach { transaction ->
                         try {
-                            val expenseDate = dateFormatter.parse(expense.date)?.time ?: 0
-                            // Assuming all fetched expenses belong to the current user
-                            if (expenseDate >= startDateLong && expenseDate <= endDateLong) {
-                                sum += expense.amount
+                            val transactionDate = dateFormatter.parse(transaction.date)?.time ?: 0
+                            if (transaction.type == "expense" && transactionDate >= startDateLong && transactionDate <= endDateLong) {
+                                sum += transaction.amount
                             }
                         } catch (e: Exception) {
-                            Log.e("CalenderViewModel", "Error parsing date: ${expense.date}", e)
+                            Log.e(
+                                "CalenderViewModel",
+                                "Error parsing date or processing transaction: ${transaction.date}",
+                                e
+                            )
                         }
                     }
                     emit(sum)
@@ -79,10 +82,7 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         }
     }
 
-    /**
-     * LiveData for the remaining maximum budget.
-     * Combines maximum budget and total expenses.
-     */
+    // Remaining budget calculation, combining maxMonthlyBudget and totalExpenses
     val remainingMaxBudget: LiveData<Double?> = MediatorLiveData<Double?>().apply {
         var maxBudget: Double? = null
         var expenses: Double? = null
@@ -106,102 +106,82 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         }
     }
 
+    // Initialize block: Start observing goals and user status when ViewModel is created
     init {
-        getLoggedInUserAndCheckGoals()
+        getLoggedInUserAndLoadGoals()
     }
 
-    /**
-     * Retrieves the logged-in user and checks if goals are set.
-     */
-    private fun getLoggedInUserAndCheckGoals() {
-        Log.d("CalenderViewModel", "getLoggedInUserAndCheckGoals() called")
+    // Fetches logged-in user and sets up real-time observation for monthly goals
+    private fun getLoggedInUserAndLoadGoals() {
+        Log.d("CalenderViewModel", "getLoggedInUserAndLoadGoals() called")
         viewModelScope.launch {
-            val sharedPreferences = getApplication<Application>().getSharedPreferences(
-                "user_prefs",
-                Context.MODE_PRIVATE
+            val currentUser = auth.currentUser
+            Log.d(
+                "CalenderViewModel",
+                "getLoggedInUserAndLoadGoals() - currentUser UID: ${currentUser?.uid}"
             )
-            val loggedInEmail = sharedPreferences.getString("loggedInEmail", null)
-            Log.d("CalenderViewModel", "getLoggedInUserAndCheckGoals() - loggedInEmail: $loggedInEmail")
 
-            if (loggedInEmail != null) {
-                val currentUser = userDao.getUserByEmail(loggedInEmail)
-                _loggedInUser.value = currentUser
-                Log.d("CalenderViewModel", "getLoggedInUserAndCheckGoals() - currentUser: $currentUser")
-                checkIfGoalsAreSet(loggedInEmail)
-                loadCurrentMonthlyGoals(loggedInEmail)
+            if (currentUser != null) {
+                // Set loggedInUser for UI display if needed.
+                _loggedInUser.value = User(
+                    email = currentUser.email ?: "",
+                    password = ""
+                ) // Adjust 'User' model as needed
+
+                val userId = currentUser.uid
+                // Start collecting from the real-time flow for monthly goals
+                fireStore.getMonthlyGoalsFlow(userId).collectLatest { goals ->
+                    _currentMonthlyGoals.value = goals // Update _currentMonthlyGoals LiveData
+                    _monthlyGoalsSet.value =
+                        goals != null && goals.goalSet // Update _monthlyGoalsSet
+                    Log.d(
+                        "CalenderViewModel",
+                        "Goals Flow updated: $goals, goalsSet: ${_monthlyGoalsSet.value}"
+                    )
+                }
             } else {
                 _loggedInUser.value = null
                 _monthlyGoalsSet.value = false
                 _currentMonthlyGoals.value = null
-                Log.d("CalenderViewModel", "getLoggedInUserAndCheckGoals() - No logged-in user")
+                Log.d(
+                    "CalenderViewModel",
+                    "getLoggedInUserAndLoadGoals() - No logged-in user or user is null"
+                )
             }
         }
     }
 
-    /**
-     * Checks if goals are set for a user.
-     */
-    private fun checkIfGoalsAreSet(userId: String) {
-        Log.d("CalenderViewModel", "checkIfGoalsAreSet() called for userId: $userId")
+    // Function to save monthly goals, called from UI (e.g., dialog)
+    fun saveMonthlyGoals(maxGoal: Double, minGoal: Double) {
         viewModelScope.launch {
-            val existingGoals = monthlyGoalsDao.getMonthlyGoalByUserId(userId)
-            _monthlyGoalsSet.value = existingGoals != null
-            Log.d(
-                "CalenderViewModel",
-                "checkIfGoalsAreSet() - existingGoals: $existingGoals, _monthlyGoalsSet.value: ${_monthlyGoalsSet.value}"
-            )
+            val userId = auth.currentUser?.uid
+            if (userId != null) {
+                val newMonthlyGoal = MonthlyGoals(
+                    userId = userId, // Assign the current user's ID
+                    maxGoalAmount = maxGoal,
+                    minGoalAmount = minGoal,
+                    goalSet = true
+                )
+                try {
+                    fireStore.saveMonthlyGoal(newMonthlyGoal)
+                    Log.d(
+                        "CalenderViewModel",
+                        "Monthly goals save initiated via ViewModel. Flow will update UI."
+                    )
+                    // UI will automatically update because the Flow in getLoggedInUserAndLoadGoals()
+                    // detects the change in Firestore and updates _currentMonthlyGoals.
+                } catch (e: Exception) {
+                    Log.e("CalenderViewModel", "Error saving goals via ViewModel: ${e.message}", e)
+                    // You might want to expose this error to the UI (e.g., via a separate LiveData for error messages)
+                }
+            } else {
+                Log.e("CalenderViewModel", "Cannot save goals: User not logged in.")
+                // Similarly, expose error to UI
+            }
         }
     }
 
-    /**
-     * Loads the current monthly goals for a user.
-     */
-    private fun loadCurrentMonthlyGoals(userId: String) {
-        Log.d("CalenderViewModel", "loadCurrentMonthlyGoals() called for userId: $userId")
-        viewModelScope.launch {
-            val currentGoals = monthlyGoalsDao.getMonthlyGoalByUserId(userId)
-            _currentMonthlyGoals.value = currentGoals
-            Log.d(
-                "CalenderViewModel",
-                "loadCurrentMonthlyGoals() - currentGoals: $currentGoals, _currentMonthlyGoals.value: ${_currentMonthlyGoals.value}"
-            )
-        }
-    }
-
-    /**
-     * Saves monthly goals for a user.
-     */
-    fun saveMonthlyGoals(userId: String, maxGoal: Double, minGoal: Double) {
-        viewModelScope.launch {
-            val newMonthlyGoal = MonthlyGoals(
-                userId = userId,
-                maxGoalAmount = maxGoal,
-                minGoalAmount = minGoal,
-                goalSet = true
-            )
-            monthlyGoalsDao.insertMonthlyGoal(newMonthlyGoal)
-            _monthlyGoalsSet.value = true
-            loadCurrentMonthlyGoals(userId)
-        }
-    }
-
-    /**
-     * Gets the current user ID from SharedPreferences.
-     *
-     * @return The user ID or an empty string if not found.
-     */
-    private fun getCurrentUserId(): String {
-        val sharedPreferences = getApplication<Application>().getSharedPreferences(
-            "user_prefs",
-            Context.MODE_PRIVATE
-        )
-        return sharedPreferences.getString("loggedInEmail", "") ?: ""
-    }
-
-    /**
-     * Gets the timestamp of the start of the month for a given date.
-     * @return The timestamp of the first day of the month at 00:00:00.
-     */
+    // Date utility functions
     private fun getStartOfMonth(date: Long): Long {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = date
@@ -213,10 +193,6 @@ class CalenderViewModel(application: Application, private val userDao: UserDAO, 
         return calendar.timeInMillis
     }
 
-    /**
-     * Gets the timestamp of the end of the month for a given date.
-     * @return The timestamp of the last day of the month at 23:59:59.999.
-     */
     private fun getEndOfMonth(date: Long): Long {
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = date

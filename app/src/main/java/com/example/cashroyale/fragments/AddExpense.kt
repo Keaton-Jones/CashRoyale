@@ -53,7 +53,7 @@ class AddExpense : AppCompatActivity() {
         appDatabase = AppDatabase.getDatabase(applicationContext)
 
         setupPaymentMethodSpinner() // Set up the payment method dropdown
-        setupCategorySpinner()    // Set up the category dropdown
+        //setupCategorySpinner()    // Set up the category dropdown
         setupDatePicker()         // Set up the date picker functionality
         setupImagePicker()        // Set up the image picking functionality
         setupSaveButton()         // Set up the save button functionality
@@ -66,21 +66,21 @@ class AddExpense : AppCompatActivity() {
         PaymentMethod.adapter = adapter
     }
 
-    private fun setupCategorySpinner() {
-        // Fetch expense categories from the database and populate the spinner
-        lifecycleScope.launch {
-            appDatabase.categoryDAO().getCategoriesByType("expense").collect { categories ->
-                categoryNames = categories.map { it.name }
-                val adapter = ArrayAdapter(
-                    this@AddExpense,
-                    android.R.layout.simple_spinner_item,
-                    categoryNames
-                )
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                Category.adapter = adapter
-            }
-        }
-    }
+//    private fun setupCategorySpinner() {
+//        // Fetch expense categories from the database and populate the spinner
+//        lifecycleScope.launch {
+//            appDatabase.categoryDAO().getCategoriesByType("expense").collect { categories ->
+//                categoryNames = categories.map { it.name }
+//                val adapter = ArrayAdapter(
+//                    this@AddExpense,
+//                    android.R.layout.simple_spinner_item,
+//                    categoryNames
+//                )
+//                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+//                Category.adapter = adapter
+//            }
+//        }
+//    }
 
     private fun setupDatePicker() {
         // Set up an OnClickListener for the date EditText to show a DatePickerDialog

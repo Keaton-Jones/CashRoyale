@@ -25,20 +25,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Select Colour:"
+        android:text="Change Limit:"
         android:textSize="16sp" />
 
-    <Spinner
-        android:id="@+id/editColourSpinner"
+    <EditText
+        android:id="@+id/editLimitEditText"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginTop="8dp" />
-
-    <Spinner
-        android:id="@+id/editTypeSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:hint="Enter limit"
+        android:inputType="numberDecimal" />
 
     <LinearLayout
         android:layout_width="wrap_content"
