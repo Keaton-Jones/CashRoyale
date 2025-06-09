@@ -103,13 +103,9 @@ class EditCategoryFragment : DialogFragment() {
 
             // Check if name is not blank, category exists, and limit is valid
             if (updatedName.isNotBlank() && category != null && limit != null) {
-                // Create an updated Category object using the original category's ID and userId
-                // The 'id' and 'userId' are crucial for Firestore operations (update, filter)
                 val updatedCategory = category!!.copy(
                     name = updatedName,
                     limit = limit,
-                    // id and userId are copied from the original 'category' object
-                    // They should not change during an edit operation.
                     id = category!!.id,
                     userId = category!!.userId
                 )

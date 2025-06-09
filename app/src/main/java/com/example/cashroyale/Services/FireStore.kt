@@ -6,12 +6,15 @@ import com.example.cashroyale.Models.Expense
 import com.example.cashroyale.Models.Income
 import com.example.cashroyale.Models.MonthlyGoals
 import com.example.cashroyale.Models.Transactions
+import com.example.cashroyale.Models.Transactions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.SetOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.google.firebase.Timestamp
@@ -218,6 +221,7 @@ class FireStore(private val db: FirebaseFirestore) {
         return try {
             val querySnapshot = db.collection("monthlyGoals")
                 .document(userId)
+                .document(userId)
                 .get()
                 .await()
             if (querySnapshot.exists()) {
@@ -292,13 +296,16 @@ class FireStore(private val db: FirebaseFirestore) {
         try {
             val docRef = if (transaction.id.isEmpty()) {
                 db.collection("transactions").document()
+                db.collection("transactions").document()
             } else {
+                db.collection("transactions").document(transaction.id)
                 db.collection("transactions").document(transaction.id)
             }
             docRef.set(transaction.copy(id = docRef.id)).await()
             Log.d("FireStore", "Transaction saved with ID: ${docRef.id}")
         } catch (e: Exception) {
             Log.e("FireStore", "Error saving transaction: ${e.message}", e)
+            throw e
             throw e
         }
     }
