@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "365929235787",
+    "project_id": "cashroyale",
+    "storage_bucket": "cashroyale.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:365929235787:android:61fbd0779214e01c42d4ce",
+        "android_client_info": {
+          "package_name": "com.example.cashroyale"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbrDhHM4JYio-CxALS97WR4bF7-8fFTkY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

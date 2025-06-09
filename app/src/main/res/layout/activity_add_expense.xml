@@ -9,6 +9,20 @@
     tools:context=".fragments.AddExpense">
 
     <Button
+        android:id="@+id/btnCalendar"
+        android:layout_width="240dp"
+        android:layout_height="59dp"
+        android:backgroundTint="@color/black"
+        android:text="Back to Calendar"
+        android:textColor="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.157"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.958" />
+
+    <Button
         android:id="@+id/btnSave"
         android:layout_width="240dp"
         android:layout_height="59dp"

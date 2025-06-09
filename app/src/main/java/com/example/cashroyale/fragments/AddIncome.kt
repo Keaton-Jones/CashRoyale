@@ -14,77 +14,60 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.example.cashroyale.Models.AppDatabase
+import com.example.cashroyale.MainActivity
 import com.example.cashroyale.Models.Income
 import com.example.cashroyale.R
-import kotlinx.coroutines.Dispatchers
+import com.example.cashroyale.Services.FireStore
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class AddIncome : AppCompatActivity() {
     private lateinit var Description: EditText
     private lateinit var Amount: EditText
-    private lateinit var Category: Spinner
     private lateinit var PaymentMethod: Spinner
     private lateinit var Date: EditText
     private lateinit var PickImage: Button
     private lateinit var iPreview: ImageView
     private lateinit var Save: Button
+    private lateinit var btnCalendar: Button
 
-    private lateinit var appDatabase: AppDatabase
-    private lateinit var categoryNames: List<String>
+    private lateinit var fireStore: FireStore
     private var selectedImageUri: Uri? = null
 
     private val paymentMethods = listOf("Cash", "Credit Card")
-    private val IMAGE_PICK_CODE = 1001 // Constant for image pick request
+    private val IMAGE_PICK_CODE = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_income)
 
-        // Initialize UI elements
+        fireStore = FireStore(FirebaseFirestore.getInstance())
+
         Description = findViewById(R.id.edtDescription)
         Amount = findViewById(R.id.edtAmount)
-        Category = findViewById(R.id.spinCategory)
         PaymentMethod = findViewById(R.id.spinPayment)
         Date = findViewById(R.id.edtDate)
         PickImage = findViewById(R.id.btnPickImage)
         iPreview = findViewById(R.id.imageView)
         Save = findViewById(R.id.btnSave)
-        appDatabase = AppDatabase.getDatabase(applicationContext)
+        btnCalendar = findViewById(R.id.btnCalendar)
 
-        setupPaymentMethodSpinner() // Sets up the payment method dropdown
-        setupCategorySpinner()    // Sets up the income category dropdown
-        setupDatePicker()         // Sets up the date picker functionality
-        setupImagePicker()        // Sets up the image picking functionality
-        setupSaveButton()         // Sets up the save button functionality
+        setupPaymentMethodSpinner()
+        setupDatePicker()
+        setupImagePicker()
+        setupSaveButton()
+        setupCalendarRedirect()
     }
 
     private fun setupPaymentMethodSpinner() {
-        // Creates and sets the adapter for the payment method spinner
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, paymentMethods)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         PaymentMethod.adapter = adapter
     }
 
-    private fun setupCategorySpinner() {
-        // Fetches income categories from the database and populates the spinner
-        lifecycleScope.launch {
-            appDatabase.categoryDAO().getCategoriesByType("income").collect { categories ->
-                categoryNames = categories.map { it.name }
-                val adapter = ArrayAdapter(
-                    this@AddIncome,
-                    android.R.layout.simple_spinner_item,
-                    categoryNames
-                )
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                Category.adapter = adapter
-            }
-        }
-    }
-
     private fun setupDatePicker() {
-        // Sets an OnClickListener to show a DatePickerDialog when the Date EditText is clicked
         Date.setOnClickListener {
             val calendar = Calendar.getInstance()
             val year = calendar.get(Calendar.YEAR)
@@ -100,7 +83,6 @@ class AddIncome : AppCompatActivity() {
     }
 
     private fun setupImagePicker() {
-        // Sets an OnClickListener to open the image gallery when the PickImage button is clicked
         PickImage.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             startActivityForResult(intent, IMAGE_PICK_CODE)
@@ -109,7 +91,6 @@ class AddIncome : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // Handles the result of the image picker activity
         if (requestCode == IMAGE_PICK_CODE && resultCode == Activity.RESULT_OK) {
             selectedImageUri = data?.data
             iPreview.setImageURI(selectedImageUri)
@@ -117,16 +98,13 @@ class AddIncome : AppCompatActivity() {
     }
 
     private fun setupSaveButton() {
-        // Sets an OnClickListener to save the income data to the database
         Save.setOnClickListener {
             val description = Description.text.toString()
             val amountText = Amount.text.toString()
             val date = Date.text.toString()
             val paymentMethod = PaymentMethod.selectedItem?.toString()
-            val category = Category.selectedItem?.toString()
 
-            // Validates that all required fields are filled
-            if (description.isBlank() || amountText.isBlank() || date.isBlank() || category.isNullOrBlank() || paymentMethod.isNullOrBlank()) {
+            if (description.isBlank() || amountText.isBlank() || date.isBlank() || paymentMethod.isNullOrBlank()) {
                 Toast.makeText(this, "Please fill in all the fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -137,20 +115,46 @@ class AddIncome : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val userId = FirebaseAuth.getInstance().currentUser?.uid
+            if (userId.isNullOrEmpty()) {
+                Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val income = Income(
+                id = "",
+                userId = userId,
                 description = description,
                 amount = amount,
                 date = date,
                 paymentMethod = paymentMethod,
-                category = category,
+                category = "",
                 imageUri = selectedImageUri?.toString()
             )
 
-            // Inserts the new income into the database and finishes the activity
-            lifecycleScope.launch(Dispatchers.IO) {
-                appDatabase.incomeDAO().insertIncome(income)
-                finish()
+            lifecycleScope.launch {
+                try {
+                    fireStore.saveIncome(income)
+                    runOnUiThread {
+                        Toast.makeText(this@AddIncome, "Income saved successfully", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        Toast.makeText(this@AddIncome, "Failed to save income: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
             }
+        }
+    }
+
+    private fun setupCalendarRedirect() {
+        btnCalendar.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("navigateTo", "calendar")
+            }
+            startActivity(intent)
+            finish()
         }
     }
 }

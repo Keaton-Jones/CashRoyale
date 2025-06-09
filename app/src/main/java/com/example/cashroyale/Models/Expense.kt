@@ -1,39 +1,24 @@
 package com.example.cashroyale.Models
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
-/**
- * Represents an expense record in the application.
- * The [Entity] annotation specifies that this class maps to a database table named "expenses".
- */
-@Entity(tableName = "expenses")
 data class Expense(
-    /**
-     * Unique identifier for the expense.
-     * The [PrimaryKey] annotation marks this field as the primary key of the table.
-     * `autoGenerate = true` indicates that the database will automatically generate the ID.
-     */
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-
+    var id: String = "",
+    val userId: String = "",
     /** A brief description of the expense (e.g., "Grocery shopping", "Dinner with friends"). */
-    val description: String,
-
+    val description: String = "", // Add default value
     /** The monetary amount of the expense. */
-    val amount: Double,
-
+    val amount: Double = 0.0, // Add default value
     /** The date when the expense occurred (stored as a String for simplicity). */
-    val date: String,
-
+    val date: String = "", // Add default value
     /** The method used for payment (e.g., "Cash", "Credit Card"). */
-    val paymentMethod: String,
-
+    val paymentMethod: String = "", // Add default value
     /** The category to which the expense belongs (e.g., "Food", "Entertainment"). */
-    val category: String,
-
+    val category: String = "", // Add default value
     /**
      * The URI of an image associated with the expense (e.g., a receipt).
      * Can be null if no image is attached.
      */
     val imageUri: String? = null
-)
+){
+    // Required for Firebase
+    constructor() : this("", "", "", 0.0, "", "", "", null)
+}

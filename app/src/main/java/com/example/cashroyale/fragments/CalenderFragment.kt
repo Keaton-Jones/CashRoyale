@@ -1,156 +1,293 @@
 package com.example.cashroyale.fragments
 
-import android.app.AlertDialog
+import android.content.ContentValues.TAG
 import android.content.Intent
-import androidx.fragment.app.viewModels
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.TextView
 import android.widget.Toast
-import com.example.cashroyale.Models.AppDatabase
-import com.example.cashroyale.viewmodels.CalenderViewModel
+import androidx.annotation.RequiresApi
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.cashroyale.Models.Transactions
 import com.example.cashroyale.R
-import com.example.cashroyale.viewmodels.ViewExpenses
+import com.example.cashroyale.Services.AuthService
+import com.example.cashroyale.Services.EmailService
+import com.example.cashroyale.Services.FireStore
 import com.example.cashroyale.databinding.FragmentCalenderBinding
+import com.example.cashroyale.viewmodels.CalenderViewModel
 import com.example.cashroyale.viewmodels.CalenderViewModelFactory
+import com.example.cashroyale.viewmodels.TransactionsAdapter
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
 class CalenderFragment : Fragment() {
-    private lateinit var binding: FragmentCalenderBinding
+
+    // View binding for easy access to views in the layout
+    private var _binding: FragmentCalenderBinding? = null
+    private val binding get() = _binding!!
+
+    // Firebase Authentication instance
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+
+    // Firestore database instance
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    // Service to send emails
+    private val emailService = EmailService()
+
+    // Firestore wrapper service
+    private lateinit var fireStoreService: FireStore
+
+    // AuthService singleton instance
+    private val authService = AuthService.getInstance()
+
+    // ViewModel for calendar data and logic
+    private val viewModel: CalenderViewModel by viewModels {
+        val application = requireActivity().application
+        fireStoreService = FireStore(db)  // Initialize Firestore wrapper
+        CalenderViewModelFactory(auth, db, fireStoreService, application)  // Provide dependencies
+    }
+
+    // RecyclerView to display transactions
+    private lateinit var recyclerView: RecyclerView
+
+    // Adapter for transactions RecyclerView
+    private lateinit var adapter: TransactionsAdapter
+
+    // Lists to store income and expense transactions separately
+    private val incomeList = mutableListOf<Transactions>()
+    private val expenseList = mutableListOf<Transactions>()
+
     companion object {
-        /** Creates a new instance of this CalenderFragment. */
+        // Factory method to create new instance of this fragment
         fun newInstance() = CalenderFragment()
     }
 
-    private val viewModel: CalenderViewModel by viewModels {
-        val application = requireActivity().application
-        val database = AppDatabase.getDatabase(application) // Gets the database instance
-        CalenderViewModelFactory(application, database.userDAO(), database.monthlyGoalDAO(), database.expenseDAO())
-    }
-    private var goalsPromptShown = false // Prevents showing the goal prompt multiple times
-    private lateinit var numRemainingBudgetTextView: TextView
-    private lateinit var numAmountSpentTextView: TextView
-    private lateinit var numMinBudgetTextView: TextView
-    private lateinit var numMaxBudgetTextView: TextView
-
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val view = inflater.inflate(R.layout.fragment_calender, container, false)
-        val createCategoryImageButton: ImageButton = view.findViewById(R.id.createCategoryImageButton)
-        numRemainingBudgetTextView = view.findViewById(R.id.numRemainingBudgetTextView)
-        numAmountSpentTextView = view.findViewById(R.id.numAmountSpentTextView)
-        numMinBudgetTextView = view.findViewById(R.id.numMinBudgetTextView)
-        numMaxBudgetTextView = view.findViewById(R.id.numMaxBudgetTextView)
+        // Inflate the fragment layout with view binding
+        _binding = FragmentCalenderBinding.inflate(inflater, container, false)
+        val view = binding.root
 
-        val expenseButton: View = view.findViewById(R.id.btnExpenses)
-        expenseButton.setOnClickListener {
-            val intent = Intent(requireContext(), AddExpense::class.java)
-            startActivity(intent)
+        // Setup RecyclerView with vertical linear layout
+        recyclerView = binding.recyclerView
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        // Initialize the adapter with an empty list initially
+        adapter = TransactionsAdapter(emptyList())
+        recyclerView.adapter = adapter
+
+        // Setup button click listeners to navigate to adding income or expense screens
+        binding.btnExpenses.setOnClickListener {
+            startActivity(Intent(requireContext(), AddExpense::class.java))
         }
 
-        val incomeButton: View = view.findViewById(R.id.btnIncome)
-        incomeButton.setOnClickListener {
-            val intent = Intent(requireContext(), AddIncome::class.java)
-            startActivity(intent)
-        }
-        val btnViewExpenses: View = view.findViewById(R.id.btnViewExpenses)
-        btnViewExpenses.setOnClickListener {
-            val intent = Intent(requireContext(), ViewExpenses::class.java)
-            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-            startActivity(intent)
+        binding.btnIncome.setOnClickListener {
+            startActivity(Intent(requireContext(), AddIncome::class.java))
         }
 
-        createCategoryImageButton.setOnClickListener {
+        // Button to send budget report via email
+        binding.btnSendReport.setOnClickListener {
+            sendReport()
+        }
+
+        // Button to show category creation dialog
+        binding.createCategoryImageButton.setOnClickListener {
             showWidgetDialogFragment()
         }
 
+        // Start observing LiveData from ViewModel to update UI automatically
         observeViewModel()
-        // **GOAL PROMPT LOGIC**
-        viewModel.loggedInUser.observe(viewLifecycleOwner) { user ->
-            Log.d("CalenderFragment", "loggedInUser observed: $user") // Log user observation
-            viewModel.monthlyGoalsSet.observe(viewLifecycleOwner) { goalsSet ->
-                Log.d("CalenderFragment", "monthlyGoalsSet observed: $goalsSet, goalsPromptShown: $goalsPromptShown") // Log goals set observation
-                user?.let {
-                    if (!goalsSet && !goalsPromptShown) {
-                        Log.d("CalenderFragment", "Showing goal input dialog for user: ${it.email}") // Log when showing goal dialog
-                        showGoalInputDialog(it.email)
-                        goalsPromptShown = true
-                    } else {
-                        Log.d("CalenderFragment", "Goals already set or prompt shown.") // Log when goal dialog is skipped
-                    }
-                }
+
+        // Get the current user's ID
+        val userId = auth.currentUser?.uid
+
+        // If user not logged in, show error and return early
+        if (userId.isNullOrEmpty()) {
+            Log.e(TAG, "User not authenticated or not logged in. Cannot proceed.")
+            Toast.makeText(context, "User not logged in. Please log in.", Toast.LENGTH_LONG).show()
+            return view
+        }
+
+        // Check if monthly budget goals exist for this user in Firestore
+        db.collection("monthlyGoals").whereEqualTo("userId", userId).get().addOnCompleteListener { task ->
+            // If no goals found, prompt user to set goals
+            if (task.isSuccessful && task.result.isEmpty) {
+                showGoalInputDialog(userId)
             }
         }
+
+        // Start real-time listening for income and expense transactions
+        setupRealtimeListeners(userId)
 
         return view
     }
 
-    /** Observes LiveData from the ViewModel to update UI elements. */
-    private fun observeViewModel() {
-        viewModel.maxMonthlyBudget.observe(viewLifecycleOwner) { maxBudget ->
-            numMaxBudgetTextView.text = if (maxBudget != null) "R ${String.format("%.2f", maxBudget)}" else "R N/A"
-        }
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun sendReport() {
+        // Get overall budget info from ViewModel
+        val max = viewModel.maxMonthlyBudget.value
+        val spent = viewModel.totalExpenses.value
+        val remaining = viewModel.remainingMaxBudget.value
 
-        viewModel.minMonthlyBudget.observe(viewLifecycleOwner) { minBudget ->
-            numMinBudgetTextView.text = if (minBudget != null) "R ${String.format("%.2f", minBudget)}" else "R N/A"
-        }
+        var report = "Monthly Budget Overview:\n\n" +
+                "Your overall monthly budget is R ${String.format("%.2f", max ?: 0.0)}\n" +
+                "You spent a total of R ${String.format("%.2f", spent ?: 0.0)} this month\n" +
+                "Your remaining overall budget is R ${String.format("%.2f", remaining ?: 0.0)}\n\n"
 
-        viewModel.totalExpenses.observe(viewLifecycleOwner) { totalSpent ->
-            numAmountSpentTextView.text = if (totalSpent != null) "R ${String.format("%.2f", totalSpent)}" else "R 0.00"
-        }
-
-        viewModel.remainingMaxBudget.observe(viewLifecycleOwner) { remainingBudget ->
-            numRemainingBudgetTextView.text = if (remainingBudget != null) "R ${String.format("%.2f", remainingBudget)}" else "R N/A"
+        // Add info about reaching minimum monthly goal
+        if (max != null && spent != null && remaining != null) {
+            val minGoal = viewModel.minMonthlyBudget.value ?: 0.0
+            if (spent >= minGoal) { // Reaching min goal means spending AT LEAST minGoal
+                report += "✅ You have reached your minimum monthly goal of R ${String.format("%.2f", minGoal)}\n\n"
+            } else {
+                report += "❌ You have not yet reached your minimum monthly goal of R ${String.format("%.2f", minGoal)}\n\n"
+            }
         }
     }
 
-    /** Shows a dialog fragment to create new categories. */
+    // Observe LiveData in ViewModel and update UI when data changes
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun observeViewModel() {
+        viewModel.maxMonthlyBudget.observe(viewLifecycleOwner) { maxBudget ->
+            binding.numMaxBudgetTextView.text = maxBudget?.let { "R ${String.format("%.2f", it)}" } ?: "R N/A"
+        }
+
+        viewModel.minMonthlyBudget.observe(viewLifecycleOwner) { minBudget ->
+            binding.numMinBudgetTextView.text = minBudget?.let { "R ${String.format("%.2f", it)}" } ?: "R N/A"
+        }
+
+        viewModel.totalExpenses.observe(viewLifecycleOwner) { totalSpent ->
+            binding.numAmountSpentTextView.text = "R ${String.format("%.2f", totalSpent ?: 0.0)}"
+        }
+
+        // In observeViewModel()
+        viewModel.remainingMaxBudget.observe(viewLifecycleOwner) { remainingBudget ->
+            binding.numRemainingBudgetTextView.text = remainingBudget?.let { "R ${String.format("%.2f", it)}" } ?: "R N/A"
+        }
+    }
+
+    // Setup Firestore real-time listeners for income and expenses for the current user
+    private fun setupRealtimeListeners(userId: String) {
+        db.collection("income")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { incomeSnapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error fetching income data: ${error.message}", error)
+                    return@addSnapshotListener
+                }
+                incomeList.clear()
+                incomeSnapshot?.documents?.forEach { doc ->
+                    val income = doc.toObject(Transactions::class.java)
+                    income?.type = "income"  // Mark type as income
+                    income?.let { incomeList.add(it) }
+                }
+                mergeAndDisplayTransactions()
+            }
+
+        db.collection("expenses")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { expenseSnapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error fetching expense data: ${error.message}", error)
+                    return@addSnapshotListener
+                }
+                expenseList.clear()
+                expenseSnapshot?.documents?.forEach { doc ->
+                    val expense = doc.toObject(Transactions::class.java)
+                    expense?.type = "expense"  // Mark type as expense
+                    expense?.let { expenseList.add(it) }
+                }
+                mergeAndDisplayTransactions()
+            }
+    }
+
+    // Combine income and expenses, sort by date descending, then update adapter
+    private fun mergeAndDisplayTransactions() {
+        val mergedList = incomeList + expenseList
+        val sortedList = mergedList.sortedByDescending { it.date }
+        adapter.updateData(sortedList)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // When returning to this fragment, refresh listeners if user is logged in
+        val userId = auth.currentUser?.uid
+        if (!userId.isNullOrEmpty()) {
+            setupRealtimeListeners(userId)
+        }
+    }
+
+    // Show the dialog fragment to create categories (widget)
     private fun showWidgetDialogFragment() {
         val widgetDialogFragment = WidgetCategoriesFragment()
         widgetDialogFragment.show(childFragmentManager, "WidgetDialogFragment")
     }
 
-    /** Shows an AlertDialog to get the user's monthly budget goals. */
+    // Show dialog to let user input monthly budget goals if none exist
     private fun showGoalInputDialog(userId: String) {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle("Set Your Monthly Goals")
-
+        // Inflate custom layout for setting goals
         val inputView = LayoutInflater.from(requireContext()).inflate(R.layout.set_goals, null)
+
+        // Find the input fields for max and min goals
         val maxGoalEditText = inputView.findViewById<EditText>(R.id.editTextMaxGoal)
         val minGoalEditText = inputView.findViewById<EditText>(R.id.editTextMinGoal)
 
-        builder.setView(inputView)
-            .setPositiveButton("Save") { _, _ ->
-                val maxGoalStr = maxGoalEditText.text.toString().trim()
-                val minGoalStr = minGoalEditText.text.toString().trim()
+        // Create dialog with the custom view and title
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Set Your Monthly Goals")
+            .setView(inputView)
+            .setCancelable(false)
+            .create()
 
-                if (maxGoalStr.isNotEmpty() && minGoalStr.isNotEmpty()) {
-                    val maxGoal = maxGoalStr.toDoubleOrNull()
-                    val minGoal = minGoalStr.toDoubleOrNull()
+        // When "Set Goals" button is clicked inside the dialog
+        inputView.findViewById<Button>(R.id.btnSetGoals).setOnClickListener {
+            val maxGoalStr = maxGoalEditText.text.toString().trim()
+            val minGoalStr = minGoalEditText.text.toString().trim()
 
-                    if (maxGoal != null && minGoal != null && minGoal <= maxGoal) {
-                        viewModel.saveMonthlyGoals(userId, maxGoal, minGoal)
-                    } else {
-                        Toast.makeText(requireContext(), "Invalid goal values.", Toast.LENGTH_LONG).show()
-                        showGoalInputDialog(userId) // Re-show the dialog on invalid input
+            if (maxGoalStr.isNotEmpty() && minGoalStr.isNotEmpty()) {
+                val maxGoal = maxGoalStr.toDoubleOrNull()
+                val minGoal = minGoalStr.toDoubleOrNull()
+
+                // Check if goals are valid and min is less or equal max
+                if (maxGoal != null && minGoal != null && minGoal <= maxGoal) {
+                    lifecycleScope.launch {
+                        try {
+                            // Save goals through ViewModel
+                            viewModel.saveMonthlyGoals(maxGoal, minGoal)
+                            dialog.dismiss()
+                            Toast.makeText(requireContext(), "Goals saved successfully!", Toast.LENGTH_SHORT).show()
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error saving goals from dialog: ${e.message}", e)
+                            Toast.makeText(requireContext(), "Error saving goals: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                        }
                     }
                 } else {
-                    Toast.makeText(requireContext(), "Please enter both goals.", Toast.LENGTH_SHORT).show()
-                    showGoalInputDialog(userId) // Re-show the dialog if fields are empty
+                    Toast.makeText(requireContext(), "Invalid goal values. Min goal must be less than or equal to Max goal.", Toast.LENGTH_LONG).show()
                 }
+            } else {
+                Toast.makeText(requireContext(), "Please fill both max and min goals.", Toast.LENGTH_LONG).show()
             }
-            .setNegativeButton("Later") { dialog, _ ->
-                dialog.dismiss()
-                // Handle postponing if needed
-            }
-            .setCancelable(false)
-        builder.create().show()
+        }
+        dialog.show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null // Avoid memory leaks by clearing binding reference
     }
 }
