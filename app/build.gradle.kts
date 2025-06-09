@@ -83,6 +83,7 @@ dependencies {
     implementation("androidx.palette:palette:1.0.0")
     implementation(libs.room.common.jvm)
     implementation(libs.room.runtime.android)
+    implementation(libs.firebase.database.ktx)
 
 
     // Testing dependencies
