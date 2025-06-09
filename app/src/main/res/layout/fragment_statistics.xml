@@ -29,6 +29,8 @@
         android:hint="Start Date (yyyy-MM-dd)"
         android:inputType="date"
         android:minHeight="48dp"
+        android:focusable="false"
+        android:clickable="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvStatistics" />
@@ -42,6 +44,8 @@
         android:hint="End Date (yyyy-MM-dd)"
         android:inputType="date"
         android:minHeight="48dp"
+        android:focusable="false"
+        android:clickable="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/edtStartDate" />

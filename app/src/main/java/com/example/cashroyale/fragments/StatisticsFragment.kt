@@ -49,7 +49,8 @@ class StatisticsFragment : Fragment() {
         btnGenerate = view.findViewById(R.id.btnGenerate)
         chart = view.findViewById(R.id.chart)
 
-
+        edtStart.setOnClickListener { pickDate(edtStart) }
+        edtEnd.setOnClickListener { pickDate(edtEnd) }
 
         btnGenerate.setOnClickListener {
             val start = edtStart.text.toString()
@@ -94,7 +95,6 @@ class StatisticsFragment : Fragment() {
 
         datePicker.show()
     }
-
 
     private fun displayChart(data: Map<String, Double>) {
         val entries = data.entries
