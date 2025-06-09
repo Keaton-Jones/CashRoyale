@@ -105,23 +105,24 @@ class GoalFragment : Fragment() {
         when {
             spent < min -> {
                 statusText = "Below Minimum Spending.\nYou can spend more!\n\n" +
-                        "Niko is usually the one who loves to spend and enjoy life, so don’t be afraid to treat yourself occasionally. " +
-                        "Consider allocating some budget for things that improve your well-being, like eating better meals, socializing with friends, or taking short trips. " +
-                        "Remember, spending wisely on experiences can recharge your motivation for uni and life in South Africa. Just avoid impulsive splurges."
+                        "Niko loves to spend money and enjoy life, so take inspiration from him, don’t be afraid to treat yourself occasionally. " +
+                        "Consider using some of that budget for things that improve your well-being, like getting into some self defence classes, real ones not like kick-boxing, socializing with friends, or taking ALGEBRA lessons. " +
+                        "Remember, spending wisely on experiences can recharge your motivation for uni and life in general. Just avoid impulsive splurges."
                 statusColor = Color.parseColor("#388E3C") // Green 700
             }
             spent in min..max -> {
                 statusText = "You're within your goal! Keep it up!\n\n" +
-                        "Keaton is the sensible one who sticks to his budget and plans ahead. Keep tracking your expenses like he does. " +
-                        "Prioritize essentials like rent, groceries, and transport, but set aside some funds for hobbies or saving for future goals. " +
-                        "Maintaining this balance helps avoid stress and builds good financial habits for after university."
+                        "Keaton is  sensible and he likes to stick to his budget and plans ahead. Keep tracking your expenses like he tracks the days before he can go drinking again. " +
+                        "Prioritize essentials like rent, groceries, transport and AA meetings unlike him, but set aside some funds for hobbies or saving for future goals. " +
+                        "Maintaining this balance helps avoid stress and builds good financial habits for after university.\n" +
+                        "\n-----We dont drink for taste, we drink to forget------"
                 statusColor = Color.parseColor("#F57C00") // Orange 700
             }
             else -> {
                 statusText = "You've exceeded your spending goal! Time to slow down!\n\n" +
-                        "Kazi knows the importance of cutting back when spending gets out of control. Review your expenses carefully and identify non-essential costs to reduce. " +
-                        "Try cooking more at home, limit takeouts, and avoid unnecessary subscriptions. Use budgeting apps or spreadsheets to track and plan your spending. " +
-                        "This discipline now will make a big difference both in your studies and long-term financial health."
+                        "Kazi doesnt know the importance of cutting back when spending gets out of control. Review your expenses carefully and identify non-essential costs to reduce. " +
+                        "Try buying less football T-shirts, limit takeouts, and avoid unnecessary subscriptions, like those BJJ fees. Use Cash Royale more  to track and plan your spending. " +
+                        "This discipline now will make a big difference so you dont end up like most IT majors, Homeless;(."
                 statusColor = Color.parseColor("#D32F2F") // Red 700
             }
         }
