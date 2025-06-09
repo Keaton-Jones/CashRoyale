@@ -16,6 +16,7 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.cashroyale.MainActivity
 import com.example.cashroyale.Models.Expense
 import com.example.cashroyale.R
 import com.example.cashroyale.Services.FireStore
@@ -35,6 +36,7 @@ class AddExpense : AppCompatActivity() {
     private lateinit var pickImageBtn: Button
     private lateinit var imagePreview: ImageView
     private lateinit var saveBtn: Button
+    private lateinit var btnCalendar: Button
 
     private lateinit var firestore: FireStore
     private var selectedImageUri: Uri? = null
@@ -48,10 +50,8 @@ class AddExpense : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
 
-        // Init Firestore
         firestore = FireStore(FirebaseFirestore.getInstance())
 
-        // UI Setup
         descriptionField = findViewById(R.id.edtDescription)
         amountField = findViewById(R.id.edtAmount)
         categorySpinner = findViewById(R.id.spinCategory)
@@ -60,12 +60,14 @@ class AddExpense : AppCompatActivity() {
         pickImageBtn = findViewById(R.id.btnPickImage)
         imagePreview = findViewById(R.id.imageView)
         saveBtn = findViewById(R.id.btnSave)
+        btnCalendar = findViewById(R.id.btnCalendar)
 
         setupDatePicker()
         setupPaymentSpinner()
         setupImagePicker()
         setupCategorySpinner()
         setupSaveButton()
+        setupCalendarRedirect()
     }
 
     private fun setupPaymentSpinner() {
@@ -174,9 +176,8 @@ class AddExpense : AppCompatActivity() {
 
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
 
-
             val expense = Expense(
-                id = "", // Firestore will generate this
+                id = "",
                 userId = userId,
                 description = description,
                 amount = amount,
@@ -193,5 +194,14 @@ class AddExpense : AppCompatActivity() {
             }
         }
     }
-}
 
+    private fun setupCalendarRedirect() {
+        btnCalendar.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("navigateTo", "calendar")
+            }
+            startActivity(intent)
+            finish()
+        }
+    }
+}
