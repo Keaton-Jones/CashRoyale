@@ -84,6 +84,7 @@ dependencies {
     implementation("androidx.palette:palette:1.0.0")
     implementation(libs.room.common.jvm)
     implementation(libs.room.runtime.android)
+    implementation(libs.firebase.database.ktx)
 
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     // Testing dependencies
