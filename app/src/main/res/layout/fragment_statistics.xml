@@ -63,12 +63,12 @@
 
     <com.github.mikephil.charting.charts.BarChart
         android:id="@+id/BarChart"
-        android:layout_width="405dp"
-        android:layout_height="209dp"
+        android:layout_width="334dp"
+        android:layout_height="178dp"
         android:layout_marginTop="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.515"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnGenerate"
         app:layout_constraintVertical_bias="0.0" />

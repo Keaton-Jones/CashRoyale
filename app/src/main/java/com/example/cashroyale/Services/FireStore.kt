@@ -18,6 +18,20 @@ import kotlinx.coroutines.withContext
 class FireStore(private val db: FirebaseFirestore) {
 
     // --- Monthly Goals Functions ---
+    suspend fun getMonthlyGoals(userId: String): MonthlyGoals? {
+        return try {
+            db.collection("monthlyGoals")
+                .document(userId)
+                .get()
+                .await()
+                .toObject(MonthlyGoals::class.java)
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error retrieving monthly goals for user $userId: ${e.message}", e)
+            null
+        }
+    }
+
+
     suspend fun getMonthlyGoalByUserId(userId: String): MonthlyGoals? {
         return try {
             val querySnapshot = db.collection("monthlyGoals")
