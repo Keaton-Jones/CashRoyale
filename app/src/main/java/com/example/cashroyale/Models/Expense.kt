@@ -18,4 +18,7 @@ data class Expense(
      * Can be null if no image is attached.
      */
     val imageUri: String? = null
-)
+){
+    // Required for Firebase
+    constructor() : this("", "", "", 0.0, "", "", "", null)
+}

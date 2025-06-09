@@ -1,8 +1,10 @@
 package com.example.cashroyale.fragments
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
@@ -14,6 +16,7 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.cashroyale.MainActivity
 import com.example.cashroyale.Models.Expense
 import com.example.cashroyale.R
 import com.example.cashroyale.Services.FireStore
@@ -33,21 +36,22 @@ class AddExpense : AppCompatActivity() {
     private lateinit var pickImageBtn: Button
     private lateinit var imagePreview: ImageView
     private lateinit var saveBtn: Button
+    private lateinit var btnCalendar: Button
 
     private lateinit var firestore: FireStore
     private var selectedImageUri: Uri? = null
+    private var capturedImageBitmap: Bitmap? = null
 
     private val paymentMethods = listOf("Cash", "Credit Card")
     private val IMAGE_PICK_CODE = 1001
+    private val IMAGE_CAPTURE_CODE = 1002
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_expense)
 
-        // Init Firestore
         firestore = FireStore(FirebaseFirestore.getInstance())
 
-        // UI Setup
         descriptionField = findViewById(R.id.edtDescription)
         amountField = findViewById(R.id.edtAmount)
         categorySpinner = findViewById(R.id.spinCategory)
@@ -56,12 +60,14 @@ class AddExpense : AppCompatActivity() {
         pickImageBtn = findViewById(R.id.btnPickImage)
         imagePreview = findViewById(R.id.imageView)
         saveBtn = findViewById(R.id.btnSave)
+        btnCalendar = findViewById(R.id.btnCalendar)
 
         setupDatePicker()
         setupPaymentSpinner()
         setupImagePicker()
         setupCategorySpinner()
         setupSaveButton()
+        setupCalendarRedirect()
     }
 
     private fun setupPaymentSpinner() {
@@ -73,7 +79,7 @@ class AddExpense : AppCompatActivity() {
     private fun setupCategorySpinner() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         lifecycleScope.launch {
-            firestore.getCategoriesByTypeFlow(userId, "expense").first().let { categories ->
+            firestore.getAllCategoriesForUserFlow(userId).first().let { categories ->
                 val names = categories.map { it.name }
                 val adapter = ArrayAdapter(this@AddExpense, android.R.layout.simple_spinner_item, names)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -101,16 +107,51 @@ class AddExpense : AppCompatActivity() {
 
     private fun setupImagePicker() {
         pickImageBtn.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            startActivityForResult(intent, IMAGE_PICK_CODE)
+            showImagePickerDialog()
         }
+    }
+
+    private fun showImagePickerDialog() {
+        val options = arrayOf("Choose from Gallery", "Take a Photo")
+        AlertDialog.Builder(this)
+            .setTitle("Select Image")
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> pickImageFromGallery()
+                    1 -> captureImageFromCamera()
+                }
+            }
+            .show()
+    }
+
+    private fun pickImageFromGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, IMAGE_PICK_CODE)
+    }
+
+    private fun captureImageFromCamera() {
+        val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        startActivityForResult(cameraIntent, IMAGE_CAPTURE_CODE)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == IMAGE_PICK_CODE && resultCode == Activity.RESULT_OK) {
-            selectedImageUri = data?.data
-            imagePreview.setImageURI(selectedImageUri)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                IMAGE_PICK_CODE -> {
+                    selectedImageUri = data?.data
+                    capturedImageBitmap = null
+                    imagePreview.setImageURI(selectedImageUri)
+                }
+                IMAGE_CAPTURE_CODE -> {
+                    val photoBitmap = data?.extras?.get("data") as? Bitmap
+                    if (photoBitmap != null) {
+                        capturedImageBitmap = photoBitmap
+                        selectedImageUri = null
+                        imagePreview.setImageBitmap(photoBitmap)
+                    }
+                }
+            }
         }
     }
 
@@ -136,7 +177,7 @@ class AddExpense : AppCompatActivity() {
             val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return@setOnClickListener
 
             val expense = Expense(
-                id = "", // Firestore will generate this
+                id = "",
                 userId = userId,
                 description = description,
                 amount = amount,
@@ -151,6 +192,16 @@ class AddExpense : AppCompatActivity() {
                 Toast.makeText(this@AddExpense, "Expense saved", Toast.LENGTH_SHORT).show()
                 finish()
             }
+        }
+    }
+
+    private fun setupCalendarRedirect() {
+        btnCalendar.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("navigateTo", "calendar")
+            }
+            startActivity(intent)
+            finish()
         }
     }
 }

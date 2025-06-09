@@ -14,6 +14,7 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.cashroyale.MainActivity
 import com.example.cashroyale.Models.Income
 import com.example.cashroyale.R
 import com.example.cashroyale.Services.FireStore
@@ -30,6 +31,7 @@ class AddIncome : AppCompatActivity() {
     private lateinit var PickImage: Button
     private lateinit var iPreview: ImageView
     private lateinit var Save: Button
+    private lateinit var btnCalendar: Button
 
     private lateinit var fireStore: FireStore
     private var selectedImageUri: Uri? = null
@@ -41,10 +43,8 @@ class AddIncome : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_income)
 
-        // Initialize Firestore service
         fireStore = FireStore(FirebaseFirestore.getInstance())
 
-        // Initialize UI elements
         Description = findViewById(R.id.edtDescription)
         Amount = findViewById(R.id.edtAmount)
         PaymentMethod = findViewById(R.id.spinPayment)
@@ -52,11 +52,13 @@ class AddIncome : AppCompatActivity() {
         PickImage = findViewById(R.id.btnPickImage)
         iPreview = findViewById(R.id.imageView)
         Save = findViewById(R.id.btnSave)
+        btnCalendar = findViewById(R.id.btnCalendar)
 
         setupPaymentMethodSpinner()
         setupDatePicker()
         setupImagePicker()
         setupSaveButton()
+        setupCalendarRedirect()
     }
 
     private fun setupPaymentMethodSpinner() {
@@ -120,13 +122,13 @@ class AddIncome : AppCompatActivity() {
             }
 
             val income = Income(
-                id = "", //  Firestore will assign ID
+                id = "",
                 userId = userId,
                 description = description,
                 amount = amount,
                 date = date,
                 paymentMethod = paymentMethod,
-                category = "", // Optional, adjust as needed
+                category = "",
                 imageUri = selectedImageUri?.toString()
             )
 
@@ -143,6 +145,16 @@ class AddIncome : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    private fun setupCalendarRedirect() {
+        btnCalendar.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("navigateTo", "calendar")
+            }
+            startActivity(intent)
+            finish()
         }
     }
 }

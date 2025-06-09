@@ -23,200 +23,21 @@ import java.util.Locale
 
 class FireStore(private val db: FirebaseFirestore) {
 
-    // Standardized CATEGORY_COLLECTION_NAME to "categories" (plural) based on your Firestore screenshot
-    private val CATEGORY_COLLECTION_NAME = "categories" //
-
-    // --- Category Management ---
-
-    /**
-     * Saves or updates a Category document in Firestore.
-     * If category.id is empty, a new document ID is generated.
-     * The Category object includes its limit.
-     */
-    suspend fun saveOrUpdateCategory(category: Category) {
-        val documentId = category.id.ifEmpty { db.collection(CATEGORY_COLLECTION_NAME).document().id }
-        val categoryToSave = category.copy(id = documentId)
-
-        val documentRef = db.collection(CATEGORY_COLLECTION_NAME)
-            .document(categoryToSave.id)
-
-        Log.d("FireStore", "saveOrUpdateCategory: Attempting to save/update category: ${categoryToSave.name} (ID: ${categoryToSave.id}) to path: $CATEGORY_COLLECTION_NAME/${categoryToSave.id}")
-        Log.d("FireStore", "saveOrUpdateCategory: Data being saved: $categoryToSave")
-
-        try {
-            // Using SetOptions.merge() is crucial for updates to only modify specified fields
-            documentRef.set(categoryToSave, SetOptions.merge()).await()
-            Log.d("FireStore", "saveOrUpdateCategory: Category '${categoryToSave.name}' saved/updated successfully.")
+    // --- Monthly Goals Functions ---
+    suspend fun getMonthlyGoals(userId: String): MonthlyGoals? {
+        return try {
+            db.collection("monthlyGoals")
+                .document(userId)
+                .get()
+                .await()
+                .toObject(MonthlyGoals::class.java)
         } catch (e: Exception) {
-            Log.e("FireStore", "saveOrUpdateCategory: ERROR saving/updating category '${categoryToSave.name}': ${e.message}", e)
-            throw e
-        }
-    }
-
-    /**
-     * Provides a real-time flow of all categories for a specific user,
-     * including their name, image, and limit.
-     */
-    fun getUserCategoriesFlow(userId: String): Flow<List<Category>> = callbackFlow {
-        val listenerRegistration = db.collection(CATEGORY_COLLECTION_NAME)
-            .whereEqualTo("userId", userId)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.e("FireStore", "Error fetching user categories: ${e.message}", e)
-                    close(e)
-                    return@addSnapshotListener
-                }
-
-                val categoryList = snapshot?.documents?.mapNotNull { doc ->
-                    try {
-                        doc.toObject(Category::class.java)?.apply { id = doc.id }
-                    } catch (mappingError: Exception) {
-                        Log.e("FireStore", "Error mapping document ${doc.id} to Category: ${mappingError.message}, Data: ${doc.data}", mappingError)
-                        null
-                    }
-                } ?: emptyList()
-                trySend(categoryList).isSuccess
-                Log.d("FireStore", "User categories fetched: ${categoryList.size} documents. First: ${categoryList.firstOrNull()}")
-            }
-
-        awaitClose { listenerRegistration.remove() }
-    }
-
-    /**
-     * Original `saveCategory` function - kept as per request.
-     * Note: `saveOrUpdateCategory` is generally preferred as it handles both new and existing categories.
-     */
-    suspend fun saveCategory(category: Category) {
-        try {
-            val docRef = if (category.id.isEmpty()) {
-                db.collection(CATEGORY_COLLECTION_NAME).document()
-            } else {
-                db.collection(CATEGORY_COLLECTION_NAME).document(category.id)
-            }
-            docRef.set(category).await() // Use set to overwrite or create
-            Log.d("FireStore", "Category saved (via saveCategory): ${docRef.id}")
-        } catch (e: Exception) {
-            Log.e("FireStore", "Error saving category (via saveCategory): ${e.message}", e)
-            throw e
-        }
-    }
-
-    /**
-     * Original `getAllCategoriesFlow` function - kept as per request.
-     * Note: `getUserCategoriesFlow` provides similar functionality for the current user.
-     */
-    fun getAllCategoriesFlow(userId: String): Flow<List<Category>> = callbackFlow {
-        val listenerRegistration = db.collection(CATEGORY_COLLECTION_NAME)
-            .whereEqualTo("userId", userId)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    close(e)
-                    return@addSnapshotListener
-                }
-
-                val categories = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Category::class.java)?.apply { id = doc.id }
-                } ?: emptyList()
-                trySend(categories).isSuccess
-                Log.d("FireStore", "All categories flow updated: ${categories.size} documents.")
-            }
-
-        awaitClose { listenerRegistration.remove() }
-    }
-
-    /**
-     * Original `getCategoriesByTypeFlow` function - kept as per request.
-     */
-    fun getCategoriesByTypeFlow(userId: String, type: String): Flow<List<Category>> = callbackFlow {
-        val listenerRegistration = db.collection(CATEGORY_COLLECTION_NAME)
-            .whereEqualTo("userId", userId)
-            .whereEqualTo("type", type) // Assumes 'type' field exists in your Category model
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    close(e)
-                    return@addSnapshotListener
-                }
-
-                val categories = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Category::class.java)?.apply { id = doc.id }
-                } ?: emptyList()
-                trySend(categories).isSuccess
-                Log.d("FireStore", "Categories by type ($type) flow updated: ${categories.size} documents.")
-            }
-
-        awaitClose { listenerRegistration.remove() }
-    }
-
-    /**
-     * Original `getCategoryById` function - path corrected to match `CATEGORY_COLLECTION_NAME`.
-     * This now fetches from the top-level 'categories' collection.
-     */
-    suspend fun getCategoryById(categoryId: String, userId: String): Category? = withContext(Dispatchers.IO) {
-        try {
-            val snapshot = db.collection(CATEGORY_COLLECTION_NAME)
-                .document(categoryId).get().await()
-            // Ensure the fetched category actually belongs to the user requesting it
-            if (snapshot.exists() && snapshot.getString("userId") == userId) {
-                snapshot.toObject(Category::class.java)?.apply { id = snapshot.id }
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            Log.e("FireStore", "Error fetching category by ID: ${e.message}", e)
+            Log.e("FireStore", "Error retrieving monthly goals for user $userId: ${e.message}", e)
             null
         }
     }
 
-    /**
-     * Original `updateCategory` function - collection name corrected.
-     */
-    suspend fun updateCategory(category: Category) {
-        try {
-            db.collection(CATEGORY_COLLECTION_NAME).document(category.id)
-                .set(category, SetOptions.merge()).await()
-            Log.d("FireStore", "Category updated: ${category.id}")
-        } catch (e: Exception) {
-            Log.e("FireStore", "Error updating category: ${e.message}", e)
-            throw e
-        }
-    }
 
-    /**
-     * Original `doesCategoryExist` function - collection name corrected.
-     */
-    suspend fun doesCategoryExist(categoryName: String, userId: String): Boolean {
-        return try {
-            val snapshot = db.collection(CATEGORY_COLLECTION_NAME)
-                .whereEqualTo("name", categoryName)
-                .whereEqualTo("userId", userId)
-                .limit(1).get().await()
-            !snapshot.isEmpty
-        } catch (e: Exception) {
-            Log.e("FireStore", "Error checking category existence: ${e.message}", e)
-            false
-        }
-    }
-
-    /**
-     * Original `deleteCategory` function - collection name corrected.
-     */
-    suspend fun deleteCategory(categoryId: String) {
-        try {
-            db.collection(CATEGORY_COLLECTION_NAME).document(categoryId).delete().await()
-            Log.d("FireStore", "Category deleted: $categoryId")
-        } catch (e: Exception) {
-            Log.e("FireStore", "Error deleting category: ${e.message}", e)
-            throw e
-        }
-    }
-
-
-    // --- Monthly Goals ---
-
-    /**
-     * Original `getMonthlyGoalByUserId` function - kept as per request.
-     * Note: `getMonthlyGoalsFlow` is preferred for real-time updates.
-     */
     suspend fun getMonthlyGoalByUserId(userId: String): MonthlyGoals? {
         return try {
             val querySnapshot = db.collection("monthlyGoals")
@@ -226,22 +47,31 @@ class FireStore(private val db: FirebaseFirestore) {
                 .await()
             if (querySnapshot.exists()) {
                 querySnapshot.toObject(MonthlyGoals::class.java)
-            } else null
+            } else {
+                null
+            }
         } catch (e: Exception) {
-            Log.e("FireStore", "Error getting monthly goal: ${e.message}", e)
+            Log.e("FireStore", "Error getting monthly goal for user $userId: ${e.message}", e)
             null
         }
     }
 
     fun getMonthlyGoalsFlow(userId: String): Flow<MonthlyGoals?> = callbackFlow {
         val docRef = db.collection("monthlyGoals").document(userId)
+
         val subscription = docRef.addSnapshotListener { snapshot, e ->
             if (e != null) {
+                Log.e("FireStore", "Listen failed for monthly goals for user $userId: ${e.message}", e)
                 close(e)
                 return@addSnapshotListener
             }
-            trySend(snapshot?.toObject(MonthlyGoals::class.java)).isSuccess
-            Log.d("FireStore", "Monthly goals flow update: ${snapshot?.toObject(MonthlyGoals::class.java)}")
+
+            if (snapshot != null && snapshot.exists()) {
+                val goals = snapshot.toObject(MonthlyGoals::class.java)
+                trySend(goals).isSuccess
+            } else {
+                trySend(null).isSuccess
+            }
         }
         awaitClose { subscription.remove() }
     }
@@ -249,48 +79,16 @@ class FireStore(private val db: FirebaseFirestore) {
     suspend fun saveMonthlyGoal(monthlyGoal: MonthlyGoals) {
         try {
             db.collection("monthlyGoals").document(monthlyGoal.userId)
-                .set(monthlyGoal, SetOptions.merge()).await()
-            Log.d("FireStore", "Monthly goal saved for user ${monthlyGoal.userId}")
+                .set(monthlyGoal, SetOptions.merge())
+                .await()
+            Log.d("FireStore", "Monthly goal saved successfully for user: ${monthlyGoal.userId}")
         } catch (e: Exception) {
             Log.e("FireStore", "Error saving monthly goal: ${e.message}", e)
             throw e
         }
     }
 
-    // --- Transactions ---
-
-    // This function for expenses was already using string dates, no change needed.
-    fun getMonthlyExpensesFlow(userId: String, startDate: String, endDate: String): Flow<List<Expense>> = callbackFlow {
-        val listenerRegistration = db.collection("expenses")
-            .whereEqualTo("userId", userId)
-            .whereGreaterThanOrEqualTo("date", startDate)
-            .whereLessThanOrEqualTo("date", endDate)
-            .orderBy("date", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Log.e("FireStore", "Error fetching expenses: ${e.message}", e)
-                    close(e)
-                    return@addSnapshotListener
-                }
-
-                val expenseList = snapshot?.documents?.mapNotNull { doc ->
-                    try {
-                        val expense = doc.toObject(Expense::class.java)?.apply { id = doc.id }
-                        if (expense == null) {
-                            Log.w("FireStore", "Failed to map document ${doc.id} to Expense object. Data: ${doc.data}")
-                        }
-                        expense
-                    } catch (mappingError: Exception) {
-                        Log.e("FireStore", "Error mapping document ${doc.id} to Expense: ${mappingError.message}, Data: ${doc.data}", mappingError)
-                        null
-                    }
-                } ?: emptyList()
-                trySend(expenseList).isSuccess
-                Log.d("FireStore", "Monthly expenses fetched: ${expenseList.size} documents.")
-            }
-
-        awaitClose { listenerRegistration.remove() }
-    }
+    // --- Transactions Functions ---
 
     suspend fun saveTransaction(transaction: Transactions) {
         try {
@@ -301,8 +99,10 @@ class FireStore(private val db: FirebaseFirestore) {
                 db.collection("transactions").document(transaction.id)
                 db.collection("transactions").document(transaction.id)
             }
-            docRef.set(transaction.copy(id = docRef.id)).await()
-            Log.d("FireStore", "Transaction saved with ID: ${docRef.id}")
+            // Correctly set the ID in the object before saving
+            val transactionToSave = transaction.copy(id = docRef.id) // Create a copy with the generated ID
+            docRef.set(transactionToSave).await()
+            Log.d("FireStore", "Transaction saved successfully: ${docRef.id}")
         } catch (e: Exception) {
             Log.e("FireStore", "Error saving transaction: ${e.message}", e)
             throw e
@@ -311,26 +111,229 @@ class FireStore(private val db: FirebaseFirestore) {
     }
 
     fun getAllTransactions(userId: String): Flow<List<Transactions>> = callbackFlow {
-        val listenerRegistration = db.collection("transactions")
+        val transactionsCollection = db.collection("transactions")
+
+        val listenerRegistration = transactionsCollection
             .whereEqualTo("userId", userId)
             .orderBy("date", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
+                    Log.e("FireStore", "Listen failed for transactions: ${e.message}", e)
                     close(e)
                     return@addSnapshotListener
                 }
 
-                val transactions = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(Transactions::class.java)?.apply { id = doc.id }
-                } ?: emptyList()
-                trySend(transactions).isSuccess
-                Log.d("FireStore", "All transactions fetched: ${transactions.size} documents.")
+                if (snapshot != null) {
+                    val transactions = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Transactions::class.java)?.apply {
+                                this.id = doc.id
+                            }
+                        } catch (ex: Exception) {
+                            Log.e("FireStore", "Error converting document ${doc.id} to Transactions: ${ex.message}", ex)
+                            null
+                        }
+                    }
+                    trySend(transactions).isSuccess
+                } else {
+                    trySend(emptyList()).isSuccess
+                }
+            }
+        awaitClose { listenerRegistration.remove() }
+    }
+
+    // --- Category Functions (Corrected and New) ---
+
+    fun getAllCategoriesFlow(userId: String): Flow<List<Category>> = callbackFlow {
+        val categoriesCollection = db.collection("categories")
+
+        val listenerRegistration = categoriesCollection
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("FireStore", "Listen failed for all categories for user $userId: ${e.message}", e)
+                    close(e)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val categories = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Category::class.java)?.apply {
+                                this.id = doc.id
+                            }
+                        } catch (ex: Exception) {
+                            Log.e("FireStore", "Error converting document ${doc.id} to Category: ${ex.message}", ex)
+                            null
+                        }
+                    }
+                    trySend(categories).isSuccess
+                } else {
+                    trySend(emptyList()).isSuccess
+                }
+            }
+        awaitClose { listenerRegistration.remove() }
+    }
+
+    fun getCategoriesByTypeFlow(userId: String, type: String): Flow<List<Category>> = callbackFlow {
+        val categoriesCollection = db.collection("categories")
+
+        val listenerRegistration = categoriesCollection
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("type", type)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("FireStore", "Listen failed for categories by type ($type) for user $userId: ${e.message}", e)
+                    close(e)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val categories = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Category::class.java)?.apply {
+                                this.id = doc.id
+                            }
+                        } catch (ex: Exception) {
+                            Log.e("FireStore", "Error converting document ${doc.id} to Category: ${ex.message}", ex)
+                            null
+                        }
+                    }
+                    trySend(categories).isSuccess
+                } else {
+                    trySend(emptyList()).isSuccess
+                }
+            }
+        awaitClose { listenerRegistration.remove() }
+    }
+
+    fun getAllCategoriesForUserFlow(userId: String): Flow<List<Category>> = callbackFlow {
+        val categoriesCollection = db.collection("categories")
+
+        val listenerRegistration = categoriesCollection
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("FireStore", "Listen failed for all categories for user $userId: ${e.message}", e)
+                    close(e)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val categories = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Category::class.java)?.apply {
+                                this.id = doc.id
+                            }
+                        } catch (ex: Exception) {
+                            Log.e("FireStore", "Error converting document ${doc.id} to Category: ${ex.message}", ex)
+                            null
+                        }
+                    }
+                    trySend(categories).isSuccess
+                } else {
+                    trySend(emptyList()).isSuccess
+                }
             }
 
         awaitClose { listenerRegistration.remove() }
     }
 
-    // --- Income specific functions ---
+    // This getCategoryById is problematic because it uses "users" collection directly,
+    // while other category functions use "categories" collection.
+    // Ensure consistency or verify your Firestore structure.
+    suspend fun getCategoryById(categoryId: String, userId: String): Category? =
+        withContext(Dispatchers.IO) {
+            try {
+                // Assuming categories are directly in a top-level "categories" collection
+                // and filtered by userId, NOT as a subcollection under "users".
+                // If they are under users, then the path should be:
+                // db.collection("users").document(userId).collection("categories").document(categoryId)
+                val documentSnapshot = db.collection("categories")
+                    .document(categoryId)
+                    .get()
+                    .await()
+
+                if (documentSnapshot.exists()) {
+                    val category = documentSnapshot.toObject(Category::class.java)
+                    // Double-check userId if needed
+                    if (category != null && category.userId == userId) {
+                        category.id = documentSnapshot.id // Ensure ID is set
+                        category
+                    } else {
+                        Log.w("FireStore", "Category $categoryId found but userId mismatch or null object.")
+                        null
+                    }
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                Log.e("FireStore", "Error fetching category by ID: $categoryId for user $userId - ${e.message}", e)
+                null
+            }
+        }
+
+
+    suspend fun updateCategory(category: Category) {
+        try {
+            db.collection("categories")
+                .document(category.id)
+                .set(category, SetOptions.merge())
+                .await()
+            Log.d("FireStore", "Category updated successfully: ${category.id}")
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error updating category ${category.id}: ${e.message}", e)
+            throw e
+        }
+    }
+
+    suspend fun doesCategoryExist(categoryName: String, userId: String): Boolean {
+        return try {
+            val querySnapshot = db.collection("categories")
+                .whereEqualTo("name", categoryName)
+                .whereEqualTo("userId", userId)
+                .limit(1)
+                .get()
+                .await()
+            !querySnapshot.isEmpty
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error checking if category exists for user $userId, name $categoryName: ${e.message}", e)
+            false
+        }
+    }
+
+
+    suspend fun saveCategory(category: Category) {
+        try {
+            val docRef = if (category.id.isEmpty()) {
+                db.collection("categories").document() // Generate new ID
+            } else {
+                db.collection("categories").document(category.id) // Use provided ID
+            }
+
+            // Create a copy of the category object with the Firestore-generated document ID
+            // and then save this modified copy.
+            val categoryToSave = category.copy(id = docRef.id) // <-- CRITICAL CHANGE HERE
+            docRef.set(categoryToSave).await() // Save the object with the ID populated
+
+            Log.d("FireStore", "Category saved/added with ID: ${docRef.id} for user ${category.userId}")
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error saving category: ${e.message}", e)
+            throw e
+        }
+    }
+
+    suspend fun deleteCategory(categoryId: String) {
+        try {
+            db.collection("categories").document(categoryId).delete().await()
+            Log.d("FireStore", "Category deleted: $categoryId")
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error deleting category $categoryId: ${e.message}", e)
+            throw e
+        }
+    }
+
+    // --- Income ---
 
     suspend fun saveIncome(income: Income) {
         try {
@@ -458,6 +461,24 @@ class FireStore(private val db: FirebaseFirestore) {
             }
 
         awaitClose { listenerRegistration.remove() }
+    }
+
+    suspend fun getExpensesBetweenDates(userId: String, startDate: String, endDate: String): List<Expense> {
+        return try {
+            val snapshot = db.collection("expenses")
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("date", startDate)
+                .whereLessThanOrEqualTo("date", endDate)
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Expense::class.java)?.apply { id = doc.id }
+            }
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error getting expenses between dates: ${e.message}", e)
+            emptyList()
+        }
     }
 
     suspend fun getExpenseById(expenseId: String): Expense? {
