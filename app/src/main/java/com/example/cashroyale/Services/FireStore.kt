@@ -182,6 +182,38 @@ class FireStore(private val db: FirebaseFirestore) {
         awaitClose { listenerRegistration.remove() }
     }
 
+    fun getAllCategoriesForUserFlow(userId: String): Flow<List<Category>> = callbackFlow {
+        val categoriesCollection = db.collection("categories")
+
+        val listenerRegistration = categoriesCollection
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    Log.e("FireStore", "Listen failed for all categories for user $userId: ${e.message}", e)
+                    close(e)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot != null) {
+                    val categories = snapshot.documents.mapNotNull { doc ->
+                        try {
+                            doc.toObject(Category::class.java)?.apply {
+                                this.id = doc.id
+                            }
+                        } catch (ex: Exception) {
+                            Log.e("FireStore", "Error converting document ${doc.id} to Category: ${ex.message}", ex)
+                            null
+                        }
+                    }
+                    trySend(categories).isSuccess
+                } else {
+                    trySend(emptyList()).isSuccess
+                }
+            }
+
+        awaitClose { listenerRegistration.remove() }
+    }
+
     // This getCategoryById is problematic because it uses "users" collection directly,
     // while other category functions use "categories" collection.
     // Ensure consistency or verify your Firestore structure.
@@ -402,6 +434,24 @@ class FireStore(private val db: FirebaseFirestore) {
             }
 
         awaitClose { listenerRegistration.remove() }
+    }
+
+    suspend fun getExpensesBetweenDates(userId: String, startDate: String, endDate: String): List<Expense> {
+        return try {
+            val snapshot = db.collection("expenses")
+                .whereEqualTo("userId", userId)
+                .whereGreaterThanOrEqualTo("date", startDate)
+                .whereLessThanOrEqualTo("date", endDate)
+                .get()
+                .await()
+
+            snapshot.documents.mapNotNull { doc ->
+                doc.toObject(Expense::class.java)?.apply { id = doc.id }
+            }
+        } catch (e: Exception) {
+            Log.e("FireStore", "Error getting expenses between dates: ${e.message}", e)
+            emptyList()
+        }
     }
 
     suspend fun getExpenseById(expenseId: String): Expense? {

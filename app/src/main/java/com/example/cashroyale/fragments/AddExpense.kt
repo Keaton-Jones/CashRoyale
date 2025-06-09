@@ -73,7 +73,7 @@ class AddExpense : AppCompatActivity() {
     private fun setupCategorySpinner() {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return
         lifecycleScope.launch {
-            firestore.getCategoriesByTypeFlow(userId, "expense").first().let { categories ->
+            firestore.getAllCategoriesForUserFlow(userId).first().let { categories ->
                 val names = categories.map { it.name }
                 val adapter = ArrayAdapter(this@AddExpense, android.R.layout.simple_spinner_item, names)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -81,6 +81,7 @@ class AddExpense : AppCompatActivity() {
             }
         }
     }
+
 
     private fun setupDatePicker() {
         dateField.setOnClickListener {
