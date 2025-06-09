@@ -1,7 +1,9 @@
 CashRoyale: Personal Budget Tracking App 
 
 Keaton Donovan Jones – ST10336767 
+
  Zaire Tinyiko Mashaba – ST10291916 
+ 
 Mohammed Hassan Abu Tahir - ST10283090 
 
 GitHub Repository Link: https://github.com/Keaton-Jones/CashRoyale.git 
@@ -160,8 +162,11 @@ work), make sure all the input fields are filled correctly (amount, date, etc.).
 feels stuck, try closing Android Studio and opening it again. You can also restart your 
 computer just in case a background issue is causing the problem. 
  
-Demonstration Video -
+Demonstration Video Part 2 -
 YouTube video link : https://youtu.be/YkwjQNRFxYs 
+
+Demonstration Video Part 3 -
+https://youtu.be/WyXSZKgDA34
 
 References :
 Web Colors : RapidTables , https://www.rapidtables.com/web/color/index.html
