@@ -12,10 +12,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.cashroyale.Models.Category
 import com.example.cashroyale.R
 import com.example.cashroyale.Services.FireStore
-import com.example.cashroyale.databinding.FragmentCategoryListBinding // <--- Assuming this binding exists
+import com.example.cashroyale.databinding.FragmentCategoryListBinding
 import com.example.cashroyale.viewmodels.CategoryAdapter
 import com.example.cashroyale.viewmodels.CategoryListViewModel
-import com.example.cashroyale.viewmodels.CategoryViewModelFactory // <--- Use the correct factory
+import com.example.cashroyale.viewmodels.CategoryViewModelFactory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
@@ -33,12 +33,12 @@ class CategoryListFragment : Fragment() {
         val application = requireActivity().application
         // Initialize fireStoreService BEFORE passing it to the factory
         fireStoreService = FireStore(db)
-        CategoryViewModelFactory( auth, db, fireStoreService, application) // <--- Pass all required parameters
+        CategoryViewModelFactory( auth, db, fireStoreService, application)
     }
 
     private lateinit var categoryRecyclerView: RecyclerView
     private lateinit var adapter: CategoryAdapter
-    // private var goToCalendarButton: View? = null // No longer needed with ViewBinding
+    // private var goToCalendarButton: View? = null // Dont need it
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
